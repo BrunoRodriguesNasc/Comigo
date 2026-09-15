@@ -1,8 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { compareAnalyses } from "@/domain/compare";
-import { IconScan } from "@/components/icons";
-import { ButtonLink, Card, EmptyState, PageHeader, ScorePill, ScoreRing, VERDICT_STYLE, VerdictBadge, cx, table } from "@/components/ui";
+import { ButtonLink, EmptyState, Eyebrow, PageHeader, ScorePill, ScoreRing, VERDICT_STYLE, VerdictBadge, cx, verdictTitle } from "@/components/ui";
 import { analyzeProductForUser, getAnalysisForUser, listHistory, type StoredAnalysis } from "@/server/services/analysis";
 import { getUserId, requireUserId } from "@/server/session";
 
@@ -26,41 +25,47 @@ export default async function ComparePage({ searchParams }: { searchParams: Prom
       const cmp = compareAnalyses(A.result, B.result);
       return (
         <>
-          <PageHeader back={{ href: "/comparar", label: "Escolher outros" }} title="Comparação" description="Os dois produtos avaliados com o seu perfil atual." />
-          <Card className={cx("mb-6 font-medium leading-snug", cmp.winner === "tie" ? "bg-info-soft" : "border-good/30 bg-good-soft")}>{cmp.reason}</Card>
-          <div className="grid gap-6 md:grid-cols-2">
+          <PageHeader back={{ href: "/comparar", label: "Escolher outros" }} eyebrow="Comparar" title="Lado a lado, pensando em você" />
+          <p className="max-w-3xl border-l-2 border-rose pl-6 font-display text-2xl italic leading-snug sm:text-3xl">{cmp.reason}</p>
+          <div className="mt-14 grid gap-6 md:grid-cols-2">
             {([
               [A, cmp.onlyA, cmp.winner === "a"],
               [B, cmp.onlyB, cmp.winner === "b"],
             ] as const).map(([an, only, winner]) => (
-              <Card key={an.id} className={cx("flex flex-col", winner && "ring-2 ring-good")}>
-                <div className="flex items-start justify-between gap-3">
+              <article
+                key={an.id}
+                className={cx("flex flex-col rounded-[32px] px-7 py-8", winner ? VERDICT_STYLE[an.result.verdict].soft : "bg-surface ring-1 ring-line")}
+              >
+                <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    {winner && <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-good">Recomendado para você</p>}
-                    <p className="font-semibold leading-snug">{an.result.product.name}</p>
-                    {an.result.product.brand && <p className="text-sm text-muted">{an.result.product.brand}</p>}
+                    <Eyebrow>{winner ? "Nossa escolha para você" : an.result.product.brand ?? "Produto"}</Eyebrow>
+                    <h2 className="mt-3 text-3xl leading-tight">{an.result.product.name}</h2>
                   </div>
-                  <ScoreRing score={an.result.score} verdict={an.result.verdict} size={84} />
+                  <ScoreRing score={an.result.score} verdict={an.result.verdict} size={80} />
                 </div>
-                <p className={cx("mt-3 text-xs font-bold uppercase tracking-wide", VERDICT_STYLE[an.result.verdict].text)}>{an.result.verdictLabel}</p>
-                <h3 className="mt-5 text-xs font-medium uppercase tracking-wide text-muted">Só neste produto</h3>
-                <ul className="mt-2 space-y-1.5 text-sm leading-snug">
+                <p className={cx("mt-4 font-display text-xl italic", VERDICT_STYLE[an.result.verdict].text)}>
+                  {verdictTitle(an.result.verdict, an.result.profileUsed)}
+                </p>
+                <p className="mt-6 text-xs font-medium uppercase tracking-[0.2em] text-muted">Só neste produto</p>
+                <ul className="mt-3 space-y-2 text-sm leading-snug">
                   {only.positives.map((t) => (
-                    <li key={t} className="text-good">
-                      ✓ {t}
+                    <li key={t} className="flex gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-good" />
+                      {t}
                     </li>
                   ))}
                   {only.attentions.map((t) => (
-                    <li key={t} className="text-caution">
-                      ⚠ {t}
+                    <li key={t} className="flex gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-caution" />
+                      {t}
                     </li>
                   ))}
                   {only.positives.length + only.attentions.length === 0 && <li className="text-muted">Sem diferenças exclusivas.</li>}
                 </ul>
-                <Link href={`/analise/${an.id}`} className="mt-auto pt-5 text-sm font-medium text-accent hover:underline">
-                  Ver análise completa →
+                <Link href={`/analise/${an.id}`} className="mt-auto pt-8 text-sm text-ink underline decoration-line underline-offset-4 hover:decoration-ink">
+                  Ver a análise completa →
                 </Link>
-              </Card>
+              </article>
             ))}
           </div>
         </>
@@ -73,57 +78,39 @@ export default async function ComparePage({ searchParams }: { searchParams: Prom
   return (
     <>
       <PageHeader
-        back={{ href: "/historico", label: "Histórico" }}
-        title="Comparar produtos"
-        description={a ? "Agora escolha o segundo produto." : "Escolha o primeiro produto do seu histórico."}
+        back={{ href: "/historico", label: "Meus produtos" }}
+        eyebrow="Comparar"
+        title={a ? "Agora, o segundo produto" : "Escolha o primeiro produto"}
+        description="Comparamos os dois com o seu perfil atual."
       />
-      <Card className="p-0">
-        {history.length < 2 ? (
-          <EmptyState title="Analise pelo menos dois produtos para comparar">
-            <ButtonLink href="/escanear" className="mt-3">
-              <IconScan className="h-4 w-4" />
-              Analisar produto
-            </ButtonLink>
-          </EmptyState>
-        ) : (
-          <div className={table.wrap}>
-            <table className={table.table}>
-              <thead className={table.head}>
-                <tr>
-                  <th className={table.th}>Produto</th>
-                  <th className={`${table.th} hidden sm:table-cell`}>Resultado</th>
-                  <th className={`${table.th} text-right`}>Nota</th>
-                  <th className={`${table.th} text-right`} />
-                </tr>
-              </thead>
-              <tbody>
-                {history.map((h) => {
-                  const selected = h.id === a;
-                  return (
-                    <tr key={h.id} className={cx(table.row, selected && "bg-accent-soft/60")}>
-                      <td className={`${table.td} font-medium`}>{h.productName}</td>
-                      <td className={`${table.td} hidden sm:table-cell`}>
-                        <VerdictBadge verdict={h.verdict} />
-                      </td>
-                      <td className={`${table.td} text-right`}>
-                        <ScorePill score={h.score} verdict={h.verdict} />
-                      </td>
-                      <td className={`${table.td} text-right`}>
-                        <Link
-                          href={selected ? "/comparar" : a ? `/comparar?a=${a}&b=${h.id}` : `/comparar?a=${h.id}`}
-                          className="whitespace-nowrap font-medium text-accent hover:underline"
-                        >
-                          {selected ? "Produto A ✓" : a ? "Comparar" : "Escolher"}
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+      {history.length < 2 ? (
+        <EmptyState title="Analise pelo menos dois produtos">
+          <ButtonLink href="/escanear" className="mt-4">
+            Analisar produto
+          </ButtonLink>
+        </EmptyState>
+      ) : (
+        <ul className="divide-y divide-line border-y border-line">
+          {history.map((h) => {
+            const selected = h.id === a;
+            return (
+              <li key={h.id}>
+                <Link
+                  href={selected ? "/comparar" : a ? `/comparar?a=${a}&b=${h.id}` : `/comparar?a=${h.id}`}
+                  className={cx("group flex items-center gap-5 px-2 py-4", selected && "rounded-2xl bg-blush/60")}
+                >
+                  <ScorePill score={h.score} verdict={h.verdict} />
+                  <span className="min-w-0 flex-1 truncate font-display text-2xl leading-tight">{h.productName}</span>
+                  <span className="hidden sm:inline">
+                    <VerdictBadge verdict={h.verdict} />
+                  </span>
+                  <span className="shrink-0 text-sm text-ink-soft group-hover:text-ink">{selected ? "Escolhido ✓" : a ? "Comparar →" : "Escolher →"}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </>
   );
 }

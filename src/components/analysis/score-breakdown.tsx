@@ -20,8 +20,7 @@ export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
       </summary>
       <div className="border-t border-line p-4 text-sm">
         <p className="text-ink-soft">
-          A nota é a soma das parcelas abaixo. Cada parcela vem de uma regra com evidência registrada — nenhuma é
-          decidida por IA.
+          A nota é a soma das parcelas abaixo. Cada parcela vem de um critério com evidência registrada.
         </p>
 
         <table className="mt-3 w-full">

@@ -58,8 +58,8 @@ export function AssistantBox({ analysisId, initialSummary }: { analysisId: strin
     <Card>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="font-bold">Pergunte sobre este produto</h2>
-          <p className="mt-0.5 text-sm text-ink-soft">As respostas usam só os dados desta análise.</p>
+          <h2 className="text-2xl leading-tight">Ficou com alguma dúvida?</h2>
+          <p className="mt-1 text-sm text-ink-soft">Pergunte sobre este produto e o seu perfil.</p>
         </div>
       </div>
 
@@ -70,7 +70,7 @@ export function AssistantBox({ analysisId, initialSummary }: { analysisId: strin
         </div>
       ) : (
         <Button variant="secondary" className="mt-3 w-full" onClick={loadSummary} disabled={loadingSummary}>
-          {loadingSummary ? "Gerando resumo…" : "✨ Resumo personalizado"}
+          {loadingSummary ? "Preparando…" : "Ver um resumo para você"}
         </Button>
       )}
 
@@ -122,8 +122,8 @@ export function AssistantBox({ analysisId, initialSummary }: { analysisId: strin
 
 function SourceTag({ source }: { source: Reply["source"] }) {
   return (
-    <span className="mt-2 block text-[11px] text-muted">
-      {source === "ai" ? "Gerado por IA a partir da análise estruturada." : "Resposta automática a partir da análise (IA desativada)."}
+    <span className="mt-2 block text-[11px] text-muted" data-source={source}>
+      Com base na análise deste produto.
     </span>
   );
 }

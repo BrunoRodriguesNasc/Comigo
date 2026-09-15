@@ -13,9 +13,10 @@ export default async function PastePage({
   return (
     <>
       <PageHeader
-        back={{ href: "/escanear", label: "Analisar produto" }}
-        title="Colar ingredientes"
-        description="Para produtos sem código ou que ainda não estão no catálogo."
+        back={{ href: "/escanear", label: "Analisar" }}
+        eyebrow="Analisar"
+        title="Cole a lista de ingredientes"
+        description="Para produtos sem código de barras ou que ainda não conhecemos."
       />
       <PasteForm
         barcode={codigo && /^\d{8,14}$/.test(codigo) ? codigo : null}

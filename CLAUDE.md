@@ -23,6 +23,7 @@ Se uma decisão técnica ou de produto conflitar com isso, questione antes de im
 11. Dados de demonstração devem ser **fictícios**. Nunca atribua composição inventada a produto/marca real.
 12. Antes de dizer que terminou: `npm test` e `npx tsc --noEmit` passando; para mudanças de UI, verifique no navegador.
 13. Commit/push só quando pedido. Nunca commitar `.env` ou `prisma/dev.db`.
+14. **Identidade visual: marca de beleza/wellness editorial, não SaaS de IA.** Creme quente, marrom escuro na tipografia, acentos rosa/pêssego/sálvia, Instrument Serif + DM Sans, muito espaço em branco, formas orgânicas e ilustrações sutis. Evitar gradientes roxos, glassmorphism, excesso de cards, dashboards, efeitos futuristas, ícones de robô e mensagens “powered by AI”. A IA fica invisível na interface; a mensagem principal é “feito para você”.
 
 ## Comandos
 

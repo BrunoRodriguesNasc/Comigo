@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import type { Verdict } from "@/domain/types";
-import { Card, EmptyState, PageHeader, ScorePill, VerdictBadge, table } from "@/components/ui";
+import { HeartMark } from "@/components/illustrations";
+import { EmptyState, PageHeader, ScorePill } from "@/components/ui";
 import { db } from "@/server/db";
 import { getUserId } from "@/server/session";
 
@@ -27,64 +28,37 @@ export default async function FavoritesPage() {
 
   return (
     <>
-      <PageHeader title="Favoritos" description="Produtos que você salvou para lembrar depois." />
-      <Card className="p-0">
-        {favorites.length === 0 ? (
-          <EmptyState title="Nenhum produto salvo">Use “Salvar” no resultado de uma análise.</EmptyState>
-        ) : (
-          <div className={table.wrap}>
-            <table className={table.table}>
-              <thead className={table.head}>
-                <tr>
-                  <th className={table.th}>Produto</th>
-                  <th className={`${table.th} hidden sm:table-cell`}>Categoria</th>
-                  <th className={table.th}>Última análise</th>
-                  <th className={`${table.th} text-right`} />
-                </tr>
-              </thead>
-              <tbody>
-                {favorites.map(({ product }) => {
-                  const last = product.analyses[0];
-                  return (
-                    <tr key={product.id} className={table.row}>
-                      <td className={table.td}>
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-xs text-muted">{product.brand?.name}</p>
-                      </td>
-                      <td className={`${table.td} hidden text-ink-soft sm:table-cell`}>{product.category?.namePt ?? "—"}</td>
-                      <td className={table.td}>
-                        {last ? (
-                          <span className="inline-flex items-center gap-2">
-                            <ScorePill score={last.score} verdict={last.verdict as Verdict} />
-                            <span className="hidden md:inline">
-                              <VerdictBadge verdict={last.verdict as Verdict} />
-                            </span>
-                          </span>
-                        ) : (
-                          <span className="text-muted">—</span>
-                        )}
-                      </td>
-                      <td className={`${table.td} text-right`}>
-                        {last ? (
-                          <Link href={`/analise/${last.id}`} className="font-medium text-accent hover:underline">
-                            Ver análise
-                          </Link>
-                        ) : (
-                          product.barcode && (
-                            <a href={`/p/${product.barcode}`} className="font-medium text-accent hover:underline">
-                              Analisar
-                            </a>
-                          )
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+      <PageHeader eyebrow="Favoritos" title="Os que você guardou com carinho" description="Produtos que você salvou para lembrar na hora da compra." />
+      {favorites.length === 0 ? (
+        <EmptyState title="Nenhum favorito ainda">Toque em “Salvar” no resultado de um produto que combinou com você.</EmptyState>
+      ) : (
+        <ul className="grid gap-x-12 border-t border-line sm:grid-cols-2">
+          {favorites.map(({ product }) => {
+            const last = product.analyses[0];
+            const href = last ? `/analise/${last.id}` : product.barcode ? `/p/${product.barcode}` : "#";
+            return (
+              <li key={product.id} className="border-b border-line">
+                <Link href={href} className="group flex items-center gap-4 py-5">
+                  {last ? (
+                    <ScorePill score={last.score} verdict={last.verdict as Verdict} />
+                  ) : (
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-blush">
+                      <HeartMark className="h-4 w-4 text-rose" />
+                    </span>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-display text-2xl leading-tight group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4">
+                      {product.name}
+                    </p>
+                    <p className="truncate text-xs text-muted">{[product.brand?.name, product.category?.namePt].filter(Boolean).join(" · ")}</p>
+                  </div>
+                  <span className="text-ink-soft transition group-hover:translate-x-0.5">→</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </>
   );
 }

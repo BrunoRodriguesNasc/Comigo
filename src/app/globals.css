@@ -1,48 +1,47 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-nunito), ui-rounded, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-instrument), "Iowan Old Style", Georgia, serif;
 
-  /* Base creme, texto ameixa-acinzentado */
-  --color-ink: #3b3246;
-  --color-ink-soft: #6b6275;
-  --color-muted: #7d748a;
-  --color-line: #efe4dc;
-  --color-surface: #ffffff;
-  --color-ground: #fdf8f3;
+  /* Base: creme quente e marrom escuro */
+  --color-ink: #3a2a22;
+  --color-ink-soft: #6e5a4e;
+  --color-muted: #857062;
+  --color-line: #eadfd3;
+  --color-surface: #fffdf9;
+  --color-ground: #fbf6ef;
 
-  /* Marca COMIGO: lilás/ameixa */
-  --color-accent: #7c5a93;
-  --color-accent-soft: #f3ecf8;
-  --color-accent-strong: #654878;
+  /* Ação principal: marrom (discreto e premium) */
+  --color-accent: #3a2a22;
+  --color-accent-strong: #24180f;
+  --color-accent-soft: #f6e4dc;
 
-  /* Pastéis decorativos (wellness) */
-  --color-peach: #fde3d3;
-  --color-sage: #dfeadf;
-  --color-lilac: #e9def3;
-  --color-butter: #fbf0cc;
-  --color-blush: #f9dde3;
+  /* Acentos de marca */
+  --color-rose: #a65f5f;
+  --color-blush: #f4d9d2;
+  --color-peach: #f7e1cc;
+  --color-sage: #dde5d4;
+  --color-sand: #efe4d6;
 
-  /* Vereditos — suaves, mas legíveis */
-  --color-good: #3f7a57;
-  --color-good-soft: #e7f3eb;
-  --color-caution: #9a6420;
-  --color-caution-soft: #fbf0dd;
-  --color-bad: #b24a5c;
-  --color-bad-soft: #fbe8eb;
-  --color-info: #6b6478;
-  --color-info-soft: #f3eff6;
+  /* Vereditos — calmos e legíveis */
+  --color-good: #56704e;
+  --color-good-soft: #e6ecdf;
+  --color-caution: #9c6a33;
+  --color-caution-soft: #f6e9d6;
+  --color-bad: #a24f55;
+  --color-bad-soft: #f6e0dd;
+  --color-info: #76675d;
+  --color-info-soft: #efe7df;
 }
 
-@layer base {
-  h1,
-  h2,
-  h3 {
-    font-family: var(--font-display);
-    font-variation-settings: "SOFT" 100;
-    letter-spacing: -0.01em;
-  }
+/* Fora de camadas de propósito: títulos sempre na serifa editorial (a fonte só tem peso 400). */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.012em;
 }
 
 html,
@@ -55,9 +54,13 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+::selection {
+  background: var(--color-blush);
+}
+
 :focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: 2px solid var(--color-rose);
+  outline-offset: 3px;
 }
 
 details > summary {

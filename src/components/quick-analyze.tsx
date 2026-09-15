@@ -48,9 +48,9 @@ export function QuickAnalyze() {
           value={code}
           onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 14))}
           placeholder="7891234567890"
-          className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm tracking-wide outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
+          className="min-w-0 flex-1 rounded-full border border-line bg-surface px-5 py-3 text-sm tracking-wide outline-none transition focus:border-ink/40"
         />
-        <Button type="submit" disabled={!valid || busy} className="py-2">
+        <Button type="submit" disabled={!valid || busy}>
           {busy ? "Analisando…" : "Analisar"}
         </Button>
       </div>

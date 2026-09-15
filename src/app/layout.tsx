@@ -1,28 +1,34 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Nunito } from "next/font/google";
+import { DM_Sans, Instrument_Serif } from "next/font/google";
 import { ServiceWorker } from "@/components/service-worker";
 import "./globals.css";
 
-const nunito = Nunito({ subsets: ["latin"], display: "swap", variable: "--font-nunito" });
-const fraunces = Fraunces({ subsets: ["latin"], display: "swap", variable: "--font-fraunces", axes: ["SOFT", "opsz"] });
+const dmSans = DM_Sans({ subsets: ["latin"], display: "swap", variable: "--font-dm-sans" });
+const instrument = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-instrument",
+});
 
 export const metadata: Metadata = {
-  title: { default: "COMIGO — o cosmético que combina com você", template: "%s · COMIGO" },
-  description: "Analise um cosmético e descubra se ele combina com a sua pele e as suas preferências — com os motivos explicados.",
+  title: { default: "comigo — beleza feita para você", template: "%s · comigo" },
+  description: "Descubra se um cosmético combina com a sua pele e com o que você prefere — com calma, clareza e os motivos explicados.",
   manifest: "/manifest.webmanifest",
   icons: { icon: "/icons/icon.svg", apple: "/icons/icon-192.png" },
-  appleWebApp: { capable: true, title: "COMIGO", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "comigo", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fdf8f3",
+  themeColor: "#fbf6ef",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${nunito.variable} ${fraunces.variable}`}>
+    <html lang="pt-BR" className={`${dmSans.variable} ${instrument.variable}`}>
       <body className="min-h-dvh font-sans antialiased">
         {children}
         <ServiceWorker />

@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { IconClipboard } from "./icons";
-import { Button, ButtonLink, Card } from "./ui";
+import { Sprig } from "./illustrations";
+import { Button } from "./ui";
 
 type Phase =
   | { kind: "idle" }
@@ -56,7 +57,7 @@ export function Scanner({ profileJustCreated }: { profileJustCreated: boolean })
           body: JSON.stringify({ barcode }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Erro ao buscar o produto.");
+        if (!res.ok) throw new Error(data.error ?? "Não conseguimos buscar o produto.");
         if (data.status === "ok") {
           setPhase({ kind: "found", barcode, productName: data.product.name });
           router.push(`/analise/${data.analysisId}`);
@@ -67,7 +68,7 @@ export function Scanner({ profileJustCreated }: { profileJustCreated: boolean })
         }
       } catch (e) {
         handledRef.current = false;
-        setPhase({ kind: "error", message: e instanceof Error ? e.message : "Erro ao buscar o produto." });
+        setPhase({ kind: "error", message: e instanceof Error ? e.message : "Não conseguimos buscar o produto." });
       }
     },
     [router, stop],
@@ -76,7 +77,7 @@ export function Scanner({ profileJustCreated }: { profileJustCreated: boolean })
   async function start() {
     handledRef.current = false;
     if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-      setPhase({ kind: "error", message: "A câmera só funciona em conexão segura (HTTPS). Digite o código ao lado." });
+      setPhase({ kind: "error", message: "A câmera só abre em conexão segura (HTTPS). Você pode digitar o código ao lado." });
       return;
     }
     setPhase({ kind: "starting" });
@@ -125,8 +126,8 @@ export function Scanner({ profileJustCreated }: { profileJustCreated: boolean })
       setPhase({
         kind: "error",
         message: denied
-          ? "Permissão da câmera negada. Libere o acesso nas configurações do navegador ou digite o código."
-          : "Não foi possível abrir a câmera. Digite o código ao lado.",
+          ? "A permissão da câmera foi negada. Você pode liberar nas configurações do navegador ou digitar o código."
+          : "Não conseguimos abrir a câmera. Tente digitar o código.",
       });
     }
   }
@@ -134,111 +135,101 @@ export function Scanner({ profileJustCreated }: { profileJustCreated: boolean })
   const cameraOn = phase.kind === "starting" || phase.kind === "scanning";
 
   return (
-    <div className="space-y-6">
+    <div>
       {profileJustCreated && (
-        <Card className="border-good/30 bg-good-soft px-5 py-3 text-sm font-medium text-good">
-          ✓ Perfil criado. As próximas análises serão personalizadas para você.
-        </Card>
+        <p className="mb-8 inline-flex rounded-full bg-sage px-5 py-2.5 text-sm text-good">
+          Perfil criado. A partir de agora, cada análise é feita para você.
+        </p>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:items-start">
-        <Card className="overflow-hidden p-0">
-          <div className="flex items-center justify-between border-b border-line px-5 py-3">
-            <div>
-              <h2 className="text-sm font-semibold">Câmera</h2>
-              <p className="text-xs text-muted">Leitura de EAN-13, EAN-8 e UPC</p>
-            </div>
-            {cameraOn && (
-              <Button
-                variant="ghost"
-                className="px-3 py-1.5"
-                onClick={() => {
-                  stop();
-                  setPhase({ kind: "idle" });
-                }}
-              >
-                Fechar câmera
-              </Button>
-            )}
-          </div>
-          <div className="relative aspect-[3/4] w-full bg-ink sm:aspect-[4/3]">
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start">
+        <div>
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[36px] bg-ink sm:aspect-[4/3]">
             <video ref={videoRef} className="h-full w-full object-cover" playsInline muted />
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <div className="relative h-28 w-[72%] max-w-md rounded-xl border-2 border-white/80 shadow-[0_0_0_9999px_rgba(15,23,42,.45)]">
-                {phase.kind === "scanning" && <div className="absolute inset-x-3 top-1/2 h-0.5 animate-pulse bg-accent" />}
+              <div className="relative h-28 w-[70%] max-w-md rounded-[20px] border border-ground/80 shadow-[0_0_0_9999px_rgba(58,42,34,.42)]">
+                {phase.kind === "scanning" && <div className="absolute inset-x-4 top-1/2 h-px animate-pulse bg-blush" />}
               </div>
             </div>
-            <div className="absolute inset-x-0 bottom-0 p-4 text-center text-white">
+            <div className="absolute inset-x-0 bottom-0 p-5 text-center text-ground">
               {phase.kind === "idle" && (
-                <Button onClick={start} className="w-full sm:w-auto sm:px-8">
-                  Abrir câmera
-                </Button>
+                <button onClick={start} className="rounded-full bg-ground px-7 py-3 text-sm font-medium text-ink transition hover:bg-surface">
+                  Abrir a câmera
+                </button>
               )}
-              {phase.kind === "starting" && <p className="text-sm font-medium">Abrindo câmera…</p>}
-              {phase.kind === "scanning" && <p className="text-sm font-medium">Aponte para o código de barras</p>}
+              {phase.kind === "starting" && <p className="text-sm">Abrindo a câmera…</p>}
+              {phase.kind === "scanning" && <p className="text-sm">Centralize o código de barras na moldura</p>}
               {phase.kind === "found" && (
-                <div className="mx-auto max-w-sm rounded-xl bg-white p-3 text-left text-ink shadow-lg">
+                <div className="mx-auto max-w-sm rounded-[22px] bg-ground p-4 text-left text-ink">
                   <p className="text-xs text-muted">Código {phase.barcode}</p>
-                  <p className="text-sm font-semibold">{phase.productName ? `Produto encontrado: ${phase.productName}` : "Buscando produto…"}</p>
-                  <p className="mt-1 animate-pulse text-sm font-medium text-accent">Analisando para você…</p>
+                  <p className="mt-0.5 text-sm">{phase.productName ? `Encontramos: ${phase.productName}` : "Procurando o produto…"}</p>
+                  <p className="mt-1 animate-pulse font-display text-lg italic text-rose">Preparando a sua análise…</p>
                 </div>
               )}
               {phase.kind === "error" && (
-                <div className="mx-auto max-w-sm rounded-xl bg-white p-3 text-left text-ink shadow-lg">
+                <div className="mx-auto max-w-sm rounded-[22px] bg-ground p-4 text-left text-ink">
                   <p className="text-sm">{phase.message}</p>
-                  <Button variant="secondary" onClick={start} className="mt-2 w-full py-2">
+                  <Button variant="secondary" onClick={start} className="mt-3 w-full py-2.5">
                     Tentar de novo
                   </Button>
                 </div>
               )}
             </div>
           </div>
-        </Card>
-
-        <div className="space-y-6">
-          <Card>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (isBarcode(manual)) analyze(manual);
+          {cameraOn && (
+            <button
+              onClick={() => {
+                stop();
+                setPhase({ kind: "idle" });
               }}
+              className="mt-3 text-sm text-ink-soft underline-offset-4 hover:underline"
             >
-              <label htmlFor="manual" className="font-semibold">
-                Digitar código de barras
-              </label>
-              <p className="mt-0.5 text-sm text-ink-soft">Os números abaixo das barras (8 a 14 dígitos).</p>
-              <div className="mt-3 flex gap-2">
-                <input
-                  id="manual"
-                  inputMode="numeric"
-                  autoComplete="off"
-                  value={manual}
-                  onChange={(e) => setManual(e.target.value.replace(/\D/g, "").slice(0, 14))}
-                  placeholder="7891234567890"
-                  className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2.5 text-sm tracking-wide outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
-                />
-                <Button type="submit" disabled={!isBarcode(manual) || phase.kind === "found"}>
-                  Analisar
-                </Button>
-              </div>
-            </form>
-          </Card>
+              Fechar a câmera
+            </button>
+          )}
+        </div>
 
-          <Card>
-            <p className="font-semibold">Produto sem código ou fora do catálogo?</p>
-            <p className="mt-0.5 text-sm text-ink-soft">Cole a lista de ingredientes da embalagem ou do site da marca.</p>
-            <ButtonLink href="/colar" variant="secondary" className="mt-3">
-              <IconClipboard className="h-4 w-4" />
-              Colar lista de ingredientes
-            </ButtonLink>
-          </Card>
+        <div className="divide-y divide-line">
+          <form
+            className="pb-10"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (isBarcode(manual)) analyze(manual);
+            }}
+          >
+            <h2 className="text-3xl leading-tight">Prefere digitar?</h2>
+            <label htmlFor="manual" className="mt-2 block text-ink-soft">
+              Os números logo abaixo das barras.
+            </label>
+            <div className="mt-5 flex gap-2">
+              <input
+                id="manual"
+                inputMode="numeric"
+                autoComplete="off"
+                value={manual}
+                onChange={(e) => setManual(e.target.value.replace(/\D/g, "").slice(0, 14))}
+                placeholder="7891234567890"
+                className="min-w-0 flex-1 rounded-full border border-line bg-surface px-5 py-3 text-sm tracking-wide outline-none transition focus:border-ink/40"
+              />
+              <Button type="submit" disabled={!isBarcode(manual) || phase.kind === "found"}>
+                Analisar
+              </Button>
+            </div>
+          </form>
 
-          <div className="rounded-xl border border-dashed border-line px-5 py-4 text-sm text-ink-soft">
-            <p className="font-medium text-ink">Dicas</p>
-            <ul className="mt-1 list-disc space-y-0.5 pl-5">
-              <li>Use boa iluminação e mantenha o código na moldura.</li>
-              <li>A câmera exige conexão segura (HTTPS).</li>
-            </ul>
+          <div className="py-10">
+            <h2 className="text-3xl leading-tight">Sem código de barras?</h2>
+            <p className="mt-2 text-ink-soft">Cole a lista de ingredientes da embalagem ou do site da marca.</p>
+            <Link href="/colar" className="mt-4 inline-flex text-ink underline decoration-line underline-offset-4 hover:decoration-ink">
+              Colar ingredientes →
+            </Link>
+          </div>
+
+          <div className="flex items-end gap-4 pt-10">
+            <Sprig className="h-24 w-16 shrink-0 text-ink" />
+            <p className="text-sm leading-relaxed text-muted">
+              Dica: boa luz ajuda muito. A câmera funciona em conexão segura (HTTPS); se não abrir, é só digitar o código.
+            </p>
           </div>
         </div>
       </div>

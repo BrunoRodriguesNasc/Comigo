@@ -106,8 +106,9 @@ export function ProfileForm({ initial }: { initial: ProfileView }) {
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Meu perfil</h1>
-            <p className="mt-1 text-sm text-ink-soft">Ajuste quando quiser — as próximas análises usam o perfil atualizado.</p>
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-rose">Meu perfil</p>
+            <h1 className="mt-3 text-4xl leading-tight sm:text-5xl">Tudo sobre a sua pele</h1>
+            <p className="mt-3 text-base text-ink-soft">Ajuste quando quiser — as próximas análises já usam o que você mudar.</p>
           </div>
         </div>
         <div className="grid gap-6 lg:grid-cols-2 lg:items-start">{sections.slice(0, 3)}</div>
@@ -134,8 +135,9 @@ export function ProfileForm({ initial }: { initial: ProfileView }) {
   return (
     <div className="mx-auto flex max-w-2xl flex-col">
       <div className="mb-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Crie seu perfil</h1>
-        <p className="mt-1 text-sm text-ink-soft">Leva cerca de 1 minuto e deixa cada análise personalizada para você.</p>
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-rose">Seu perfil</p>
+        <h1 className="mt-3 text-4xl leading-tight sm:text-5xl">Vamos conhecer a sua pele</h1>
+        <p className="mt-3 text-base text-ink-soft">Leva cerca de um minuto — e deixa cada análise feita para você.</p>
       </div>
       <div className="flex items-center justify-between">
         {step > 0 ? (
@@ -201,7 +203,7 @@ function Chip({ selected, onClick, children }: { selected: boolean; onClick: () 
 function SkinSection({ profile, update }: SectionProps) {
   return (
     <Card>
-      <h2 className="text-lg font-bold">Como é sua pele?</h2>
+      <h2 className="text-3xl leading-tight">Como é sua pele?</h2>
       <div className="mt-3 grid grid-cols-2 gap-2">
         {SKIN_TYPES.map((t) => (
           <button
@@ -243,7 +245,7 @@ function ConcernSection({ profile, update }: SectionProps) {
     update({ concerns: profile.concerns.includes(c) ? profile.concerns.filter((x) => x !== c) : [...profile.concerns, c] });
   return (
     <Card>
-      <h2 className="text-lg font-bold">O que você quer cuidar?</h2>
+      <h2 className="text-3xl leading-tight">O que você quer cuidar?</h2>
       <p className="text-sm text-ink-soft">Escolha quantas quiser.</p>
       <div className="mt-3 flex flex-wrap gap-2">
         {CONCERNS.map((c) => (
@@ -307,7 +309,7 @@ function AvoidSection({ profile, update }: SectionProps) {
   return (
     <div className="grid gap-6 lg:col-span-2 lg:grid-cols-2 lg:items-start">
       <Card>
-        <h2 className="text-lg font-bold">Preferências</h2>
+        <h2 className="text-3xl leading-tight">Preferências</h2>
         <p className="text-sm text-ink-soft">
           <strong>Não quero</strong> vira alerta de conflito. <strong>Prefiro evitar</strong> só diminui a nota.
         </p>
@@ -335,7 +337,7 @@ function AvoidSection({ profile, update }: SectionProps) {
       </Card>
 
       <Card>
-        <h2 className="text-lg font-bold">Ingredientes que você quer evitar</h2>
+        <h2 className="text-3xl leading-tight">Ingredientes que você quer evitar</h2>
         <p className="text-sm text-ink-soft">Busque pelo nome do rótulo ou em português.</p>
         <input
           value={query}
@@ -407,7 +409,7 @@ function AvoidSection({ profile, update }: SectionProps) {
 function ConsentSection({ consent, setConsent }: { consent: boolean; setConsent: (v: boolean) => void }) {
   return (
     <Card>
-      <h2 className="text-lg font-bold">Antes de salvar</h2>
+      <h2 className="text-3xl leading-tight">Antes de salvar</h2>
       <ul className="mt-3 space-y-2 text-[14px] leading-relaxed text-ink-soft">
         <li>• Seu perfil fica associado só a este dispositivo — não pedimos nome nem e-mail.</li>
         <li>• Informações sobre a pele podem ser consideradas dados sensíveis. Usamos apenas para calcular a compatibilidade.</li>

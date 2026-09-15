@@ -1,13 +1,13 @@
 {
-  "name": "COMIGO",
+  "name": "comigo",
   "short_name": "comigo",
-  "description": "Descubra se um cosmético combina com você — e por quê.",
+  "description": "Beleza feita para você: descubra se um cosmético combina com a sua pele.",
   "lang": "pt-BR",
   "start_url": "/painel",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#fdf8f3",
-  "theme_color": "#fdf8f3",
+  "background_color": "#fbf6ef",
+  "theme_color": "#fbf6ef",
   "icons": [
     { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
