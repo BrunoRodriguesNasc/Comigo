@@ -1,16 +1,21 @@
-import { Jar } from "@/components/illustrations";
 import { ButtonLink, Logo } from "@/components/ui";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center px-5 text-center">
-      <Logo />
-      <Jar className="mt-14 h-28 w-28 text-ink" />
-      <h1 className="mt-6 text-5xl">Ops, essa página sumiu</h1>
-      <p className="mt-3 max-w-sm text-ink-soft">Ela pode ter sido removida ou pertencer a outro dispositivo.</p>
-      <ButtonLink href="/painel" className="mt-8">
-        Voltar ao início
-      </ButtonLink>
+    <div className="flex min-h-dvh flex-col bg-surface">
+      <header className="border-b border-powder">
+        <div className="mx-auto flex h-16 max-w-[1200px] items-center px-5 sm:px-8">
+          <Logo />
+        </div>
+      </header>
+      <main className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col justify-center px-5 py-24 sm:px-8">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">404</p>
+        <h1 className="mt-4 max-w-2xl text-[42px] sm:text-[54px]">Não encontramos esta página.</h1>
+        <p className="mt-5 max-w-md text-base text-muted">Ela pode ter sido removida ou pertencer a outro dispositivo.</p>
+        <div className="mt-10">
+          <ButtonLink href="/painel">Voltar ao início</ButtonLink>
+        </div>
+      </main>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "./ui";
+import { Button, fieldClass } from "./ui";
 
 /** Análise rápida por código de barras (Painel). Mesmo fluxo do scanner. */
 export function QuickAnalyze() {
@@ -40,7 +40,7 @@ export function QuickAnalyze() {
       <label htmlFor="quick-code" className="text-sm font-medium text-ink">
         Código de barras
       </label>
-      <div className="mt-1.5 flex gap-2">
+      <div className="mt-1.5 flex items-end gap-4">
         <input
           id="quick-code"
           inputMode="numeric"
@@ -48,7 +48,7 @@ export function QuickAnalyze() {
           value={code}
           onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 14))}
           placeholder="7891234567890"
-          className="min-w-0 flex-1 rounded-full border border-line bg-surface px-5 py-3 text-sm tracking-wide outline-none transition focus:border-ink/40"
+          className={`${fieldClass} min-w-0 flex-1 tracking-wide`}
         />
         <Button type="submit" disabled={!valid || busy}>
           {busy ? "Analisando…" : "Analisar"}

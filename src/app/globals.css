@@ -1,65 +1,68 @@
 @import "tailwindcss";
 
+/* Sistema visual: ver DESIGN.md (guia obrigatório de layout). */
 @theme {
-  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: var(--font-instrument), "Iowan Old Style", Georgia, serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  /* Base: creme quente e marrom escuro */
-  --color-ink: #3a2a22;
-  --color-ink-soft: #6e5a4e;
-  --color-muted: #857062;
-  --color-line: #eadfd3;
-  --color-surface: #fffdf9;
-  --color-ground: #fbf6ef;
+  /* Acromático: tinta quente sobre branco */
+  --color-ink: #231f20;
+  --color-ink-soft: #3d393a;
+  --color-muted: #5f6368;
+  --color-line: #d5e0ea;
+  --color-surface: #ffffff;
+  --color-ground: #ffffff;
 
-  /* Ação principal: marrom (discreto e premium) */
-  --color-accent: #3a2a22;
-  --color-accent-strong: #24180f;
-  --color-accent-soft: #f6e4dc;
+  /* Faixas editoriais */
+  --color-powder: #d5e0ea;
 
-  /* Acentos de marca */
-  --color-rose: #a65f5f;
-  --color-blush: #f4d9d2;
-  --color-peach: #f7e1cc;
-  --color-sage: #dde5d4;
-  --color-sand: #efe4d6;
+  /* Único acento cromático — só ação principal e estado ativo */
+  --color-accent: #a3bfdb;
+  --color-accent-strong: #8fb0cf;
+  --color-accent-soft: #d5e0ea;
 
-  /* Vereditos — calmos e legíveis */
-  --color-good: #56704e;
-  --color-good-soft: #e6ecdf;
-  --color-caution: #9c6a33;
-  --color-caution-soft: #f6e9d6;
-  --color-bad: #a24f55;
-  --color-bad-soft: #f6e0dd;
-  --color-info: #76675d;
-  --color-info-soft: #efe7df;
+  /* Cores funcionais de veredito (pequenas: pontos, números, texto) */
+  --color-good: #2f6b4a;
+  --color-good-soft: #edf3ef;
+  --color-caution: #8a5a12;
+  --color-caution-soft: #f7f0e3;
+  --color-bad: #9f2f2f;
+  --color-bad-soft: #f7eaea;
+  --color-info: #5f6368;
+  --color-info-soft: #eef2f6;
 }
 
-/* Fora de camadas de propósito: títulos sempre na serifa editorial (a fonte só tem peso 400). */
+/* Fora de camadas de propósito: vence utilitários como font-semibold (voz do sistema = peso 300). */
 h1,
 h2,
 h3 {
-  font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: -0.012em;
+  font-weight: 300;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
 }
 
 html,
 body {
-  background: var(--color-ground);
+  background: var(--color-surface);
   color: var(--color-ink);
 }
 
 body {
+  font-weight: 300;
+  line-height: 1.31;
   -webkit-tap-highlight-color: transparent;
 }
 
+strong,
+b {
+  font-weight: 500;
+}
+
 ::selection {
-  background: var(--color-blush);
+  background: var(--color-powder);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-rose);
+  outline: 1px solid var(--color-ink);
   outline-offset: 3px;
 }
 

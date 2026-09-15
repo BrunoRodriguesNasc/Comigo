@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button, Card } from "./ui";
+import { Button, Card, fieldClass } from "./ui";
 
 export function PasteForm({
   barcode,
@@ -52,21 +52,21 @@ export function PasteForm({
     <form onSubmit={submit} className="max-w-3xl">
 
       {reason === "nao-encontrado" && (
-        <Card className="mt-3 border-caution/30 bg-caution-soft/70 text-sm">
-          <p className="font-semibold">Ainda não conhecemos o código {barcode}.</p>
+        <Card className="mt-3 border-powder text-sm">
+          <p className="font-medium">Ainda não conhecemos o código {barcode}.</p>
           <p className="mt-1 text-ink-soft">Copie a lista de ingredientes da embalagem ou do site da marca e cole abaixo.</p>
         </Card>
       )}
       {reason === "sem-ingredientes" && (
-        <Card className="mt-3 border-caution/30 bg-caution-soft/70 text-sm">
-          <p className="font-semibold">Encontramos “{productName}”, mas sem lista de ingredientes.</p>
+        <Card className="mt-3 border-powder text-sm">
+          <p className="font-medium">Encontramos “{productName}”, mas sem lista de ingredientes.</p>
           <p className="mt-1 text-ink-soft">Cole a composição da embalagem para analisarmos.</p>
         </Card>
       )}
 
       <Card className="mt-4 space-y-3">
         <div>
-          <label htmlFor="ingredients" className="font-semibold">
+          <label htmlFor="ingredients" className="font-medium">
             Lista de ingredientes (INCI)
           </label>
           <textarea
@@ -78,7 +78,7 @@ export function PasteForm({
             value={ingredients}
             onChange={(e) => setIngredients(e.target.value)}
             placeholder="Aqua, Glycerin, Niacinamide, Dimethicone, Phenoxyethanol, Parfum…"
-            className="mt-2 w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-[15px] leading-relaxed outline-none focus:border-accent"
+            className="mt-3 w-full rounded-xs border border-ink bg-surface p-3 text-sm leading-[1.33] outline-none focus:border-black"
           />
           <p className="mt-1 text-xs text-muted">Separados por vírgula, na ordem da embalagem.</p>
         </div>
@@ -88,17 +88,17 @@ export function PasteForm({
             onChange={(e) => setBrand(e.target.value)}
             placeholder="Marca (opcional)"
             maxLength={120}
-            className="rounded-xl border border-line bg-surface px-3 py-2.5 text-[15px] outline-none focus:border-accent"
+            className={fieldClass}
           />
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Nome do produto"
             maxLength={160}
-            className="rounded-xl border border-line bg-surface px-3 py-2.5 text-[15px] outline-none focus:border-accent"
+            className={fieldClass}
           />
         </div>
-        <label className="flex items-start gap-3 rounded-xl bg-ground p-3 text-sm">
+        <label className="flex items-start gap-3 border-t border-powder pt-4 text-sm">
           <input type="checkbox" checked={share} onChange={(e) => setShare(e.target.checked)} className="mt-0.5 h-5 w-5 accent-[var(--color-accent)]" />
           <span>
             Enviar para revisão, para que o produto entre no catálogo

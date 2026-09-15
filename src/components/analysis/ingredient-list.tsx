@@ -23,12 +23,12 @@ export function IngredientList({ ingredients }: { ingredients: IngredientExplana
         <span className="text-ink-soft">
           {ingredients.length} ingredientes{unknown > 0 && ` · ${unknown} sem dados`}
         </span>
-        <div className="flex rounded-lg border border-line p-0.5 text-xs font-medium">
+        <div className="flex rounded-xs border border-powder p-0.5 text-xs">
           {(["relevance", "label"] as const).map((o) => (
             <button
               key={o}
               onClick={() => setOrder(o)}
-              className={`rounded-md px-2 py-1 ${order === o ? "bg-ink text-white" : "text-ink-soft"}`}
+              className={`rounded-xs px-2 py-1 ${order === o ? "bg-ink text-white" : "text-ink-soft"}`}
             >
               {o === "relevance" ? "Relevância" : "Ordem do rótulo"}
             </button>
@@ -40,7 +40,7 @@ export function IngredientList({ ingredients }: { ingredients: IngredientExplana
           <li key={i.position} className="flex gap-3 py-3">
             <StatusIcon status={i.status} size="sm" />
             <div className="min-w-0 flex-1">
-              <p className="font-semibold leading-snug">
+              <p className="font-medium leading-[1.29]">
                 {i.displayName}
                 <span className="ml-1.5 text-xs font-normal text-muted">#{i.position}</span>
               </p>
@@ -59,7 +59,7 @@ export function IngredientList({ ingredients }: { ingredients: IngredientExplana
         ))}
       </ul>
       {sorted.length > 8 && (
-        <button onClick={() => setShowAll((v) => !v)} className="mt-2 w-full rounded-xl py-2 text-sm font-semibold text-accent hover:bg-accent-soft">
+        <button onClick={() => setShowAll((v) => !v)} className="mt-4 w-full rounded-xs border border-powder py-2.5 text-sm text-ink hover:border-ink">
           {showAll ? "Mostrar menos" : `Ver todos os ${sorted.length} ingredientes`}
         </button>
       )}

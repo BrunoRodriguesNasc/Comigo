@@ -23,7 +23,9 @@ Se uma decisão técnica ou de produto conflitar com isso, questione antes de im
 11. Dados de demonstração devem ser **fictícios**. Nunca atribua composição inventada a produto/marca real.
 12. Antes de dizer que terminou: `npm test` e `npx tsc --noEmit` passando; para mudanças de UI, verifique no navegador.
 13. Commit/push só quando pedido. Nunca commitar `.env` ou `prisma/dev.db`.
-14. **Identidade visual: marca de beleza/wellness editorial, não SaaS de IA.** Creme quente, marrom escuro na tipografia, acentos rosa/pêssego/sálvia, Instrument Serif + DM Sans, muito espaço em branco, formas orgânicas e ilustrações sutis. Evitar gradientes roxos, glassmorphism, excesso de cards, dashboards, efeitos futuristas, ícones de robô e mensagens “powered by AI”. A IA fica invisível na interface; a mensagem principal é “feito para você”.
+14. **`DESIGN.md` é o guia obrigatório de toda mudança de layout.** Leia-o antes de mexer em UI e siga tokens, tipografia (sans peso 300), raios (2px; pílula de 60px só no botão principal), bordas hairline, ausência de sombras/blur e uso de fotografia. Nosso nome, logo e textos são próprios — o documento é referência de sistema visual, não de marca a copiar. Continua valendo: nada de estética de “SaaS de IA” (gradientes roxos, glassmorphism, dashboards, “powered by AI”); a IA fica invisível e a mensagem principal é “feito para você”. Se algo pedido conflitar com o `DESIGN.md`, aponte o conflito antes de implementar.
+15. **Movimento** é discreto e editorial (parallax lento em fotos, reveal suave ao rolar — `src/components/ui/parallax.tsx`). Sempre respeitar `prefers-reduced-motion` e nunca esconder conteúdo antes do JavaScript carregar.
+16. **Componentes shadcn** ficam em `src/components/ui` (alias `@/components/ui`, ver `components.json`); use `cn()` de `@/lib/utils`.
 
 ## Comandos
 

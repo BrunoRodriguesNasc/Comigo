@@ -24,22 +24,22 @@ export default async function HistoryPage() {
         }
       />
       {history.length === 0 ? (
-        <EmptyState title="Ainda está tudo por descobrir">
-          <ButtonLink href="/escanear" className="mt-4">
+        <EmptyState title="Nenhum produto analisado ainda">
+          <ButtonLink href="/escanear" className="mt-5">
             Analisar o primeiro produto
           </ButtonLink>
         </EmptyState>
       ) : (
-        <ul className="divide-y divide-line border-y border-line">
+        <ul className="divide-y divide-powder border-t border-ink">
           {history.map((h) => (
             <li key={h.id}>
               <Link href={`/analise/${h.id}`} className="group flex items-center gap-5 py-5">
                 <ScorePill score={h.score} verdict={h.verdict} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-display text-2xl leading-tight group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4">
+                  <p className="truncate text-[20px] font-light leading-[1.11] group-hover:underline group-hover:underline-offset-4 sm:text-[24px]">
                     {h.productName}
                   </p>
-                  <p className="mt-0.5 truncate text-xs text-muted">
+                  <p className="mt-1 truncate text-xs text-muted">
                     {[h.brand ?? (!h.productId ? "lista colada" : null), formatDateTime(h.createdAt)].filter(Boolean).join(" · ")}
                   </p>
                   <div className="mt-2 sm:hidden">
@@ -49,7 +49,6 @@ export default async function HistoryPage() {
                 <span className="hidden sm:inline">
                   <VerdictBadge verdict={h.verdict} />
                 </span>
-                <span className="text-ink-soft transition group-hover:translate-x-0.5">→</span>
               </Link>
             </li>
           ))}

@@ -22,7 +22,7 @@ export function FavoriteButton({ productId, initial }: { productId: string; init
 
   return (
     <Button variant="secondary" onClick={toggle} disabled={busy} aria-pressed={favorite} className="flex-1">
-      <span className={favorite ? "text-accent" : ""}>{favorite ? "♥" : "♡"}</span>
+      <span className={favorite ? "text-ink" : "text-muted"}>{favorite ? "♥" : "♡"}</span>
       {favorite ? "Salvo" : "Salvar"}
     </Button>
   );

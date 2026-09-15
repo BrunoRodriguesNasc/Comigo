@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Sprig } from "./illustrations";
-import { Button } from "./ui";
+import { Button, fieldClass } from "./ui";
 
 type Phase =
   | { kind: "idle" }
@@ -137,39 +136,37 @@ export function Scanner({ profileJustCreated }: { profileJustCreated: boolean })
   return (
     <div>
       {profileJustCreated && (
-        <p className="mb-8 inline-flex rounded-full bg-sage px-5 py-2.5 text-sm text-good">
-          Perfil criado. A partir de agora, cada análise é feita para você.
-        </p>
+        <p className="mb-10 border-l border-ink pl-4 text-sm text-ink">Perfil criado. A partir de agora, cada análise é feita para você.</p>
       )}
 
-      <div className="grid gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start">
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start lg:gap-16">
         <div>
-          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[36px] bg-ink sm:aspect-[4/3]">
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xs bg-ink sm:aspect-[4/3]">
             <video ref={videoRef} className="h-full w-full object-cover" playsInline muted />
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <div className="relative h-28 w-[70%] max-w-md rounded-[20px] border border-ground/80 shadow-[0_0_0_9999px_rgba(58,42,34,.42)]">
-                {phase.kind === "scanning" && <div className="absolute inset-x-4 top-1/2 h-px animate-pulse bg-blush" />}
+              <div className="relative h-28 w-[70%] max-w-md rounded-xs border border-white/80">
+                {phase.kind === "scanning" && <div className="absolute inset-x-3 top-1/2 h-px animate-pulse bg-accent" />}
               </div>
             </div>
-            <div className="absolute inset-x-0 bottom-0 p-5 text-center text-ground">
+            <div className="absolute inset-x-0 bottom-0 p-5 text-center text-white">
               {phase.kind === "idle" && (
-                <button onClick={start} className="rounded-full bg-ground px-7 py-3 text-sm font-medium text-ink transition hover:bg-surface">
+                <Button onClick={start} className="px-8">
                   Abrir a câmera
-                </button>
+                </Button>
               )}
               {phase.kind === "starting" && <p className="text-sm">Abrindo a câmera…</p>}
               {phase.kind === "scanning" && <p className="text-sm">Centralize o código de barras na moldura</p>}
               {phase.kind === "found" && (
-                <div className="mx-auto max-w-sm rounded-[22px] bg-ground p-4 text-left text-ink">
+                <div className="mx-auto max-w-sm rounded-xs border border-ink bg-surface p-4 text-left text-ink">
                   <p className="text-xs text-muted">Código {phase.barcode}</p>
-                  <p className="mt-0.5 text-sm">{phase.productName ? `Encontramos: ${phase.productName}` : "Procurando o produto…"}</p>
-                  <p className="mt-1 animate-pulse font-display text-lg italic text-rose">Preparando a sua análise…</p>
+                  <p className="mt-1 text-sm">{phase.productName ? `Encontramos: ${phase.productName}` : "Procurando o produto…"}</p>
+                  <p className="mt-2 animate-pulse text-[24px] leading-[1.11]">Preparando a sua análise…</p>
                 </div>
               )}
               {phase.kind === "error" && (
-                <div className="mx-auto max-w-sm rounded-[22px] bg-ground p-4 text-left text-ink">
+                <div className="mx-auto max-w-sm rounded-xs border border-ink bg-surface p-4 text-left text-ink">
                   <p className="text-sm">{phase.message}</p>
-                  <Button variant="secondary" onClick={start} className="mt-3 w-full py-2.5">
+                  <Button variant="secondary" onClick={start} className="mt-3 w-full">
                     Tentar de novo
                   </Button>
                 </div>
@@ -177,31 +174,32 @@ export function Scanner({ profileJustCreated }: { profileJustCreated: boolean })
             </div>
           </div>
           {cameraOn && (
-            <button
+            <Button
+              variant="ghost"
               onClick={() => {
                 stop();
                 setPhase({ kind: "idle" });
               }}
-              className="mt-3 text-sm text-ink-soft underline-offset-4 hover:underline"
+              className="mt-3"
             >
               Fechar a câmera
-            </button>
+            </Button>
           )}
         </div>
 
-        <div className="divide-y divide-line">
+        <div className="border-t border-ink">
           <form
-            className="pb-10"
+            className="border-b border-powder py-10"
             onSubmit={(e) => {
               e.preventDefault();
               if (isBarcode(manual)) analyze(manual);
             }}
           >
-            <h2 className="text-3xl leading-tight">Prefere digitar?</h2>
-            <label htmlFor="manual" className="mt-2 block text-ink-soft">
+            <h2 className="text-[28px]">Prefere digitar?</h2>
+            <label htmlFor="manual" className="mt-3 block text-sm text-muted">
               Os números logo abaixo das barras.
             </label>
-            <div className="mt-5 flex gap-2">
+            <div className="mt-6 flex items-end gap-4">
               <input
                 id="manual"
                 inputMode="numeric"
@@ -209,7 +207,7 @@ export function Scanner({ profileJustCreated }: { profileJustCreated: boolean })
                 value={manual}
                 onChange={(e) => setManual(e.target.value.replace(/\D/g, "").slice(0, 14))}
                 placeholder="7891234567890"
-                className="min-w-0 flex-1 rounded-full border border-line bg-surface px-5 py-3 text-sm tracking-wide outline-none transition focus:border-ink/40"
+                className={`${fieldClass} tracking-wide`}
               />
               <Button type="submit" disabled={!isBarcode(manual) || phase.kind === "found"}>
                 Analisar
@@ -217,20 +215,17 @@ export function Scanner({ profileJustCreated }: { profileJustCreated: boolean })
             </div>
           </form>
 
-          <div className="py-10">
-            <h2 className="text-3xl leading-tight">Sem código de barras?</h2>
-            <p className="mt-2 text-ink-soft">Cole a lista de ingredientes da embalagem ou do site da marca.</p>
-            <Link href="/colar" className="mt-4 inline-flex text-ink underline decoration-line underline-offset-4 hover:decoration-ink">
-              Colar ingredientes →
+          <div className="border-b border-powder py-10">
+            <h2 className="text-[28px]">Sem código de barras?</h2>
+            <p className="mt-3 text-sm text-muted">Cole a lista de ingredientes da embalagem ou do site da marca.</p>
+            <Link href="/colar" className="mt-5 inline-flex text-sm underline decoration-ink/30 underline-offset-4 hover:decoration-ink">
+              Colar ingredientes
             </Link>
           </div>
 
-          <div className="flex items-end gap-4 pt-10">
-            <Sprig className="h-24 w-16 shrink-0 text-ink" />
-            <p className="text-sm leading-relaxed text-muted">
-              Dica: boa luz ajuda muito. A câmera funciona em conexão segura (HTTPS); se não abrir, é só digitar o código.
-            </p>
-          </div>
+          <p className="pt-8 text-xs leading-[1.33] text-muted">
+            Boa luz ajuda muito. A câmera funciona em conexão segura (HTTPS); se não abrir, é só digitar o código.
+          </p>
         </div>
       </div>
     </div>

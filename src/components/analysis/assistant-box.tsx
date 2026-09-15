@@ -64,7 +64,7 @@ export function AssistantBox({ analysisId, initialSummary }: { analysisId: strin
       </div>
 
       {summary ? (
-        <div className="mt-3 rounded-xl bg-accent-soft/60 p-3 text-[14px] leading-relaxed whitespace-pre-line">
+        <div className="mt-4 border-l border-ink pl-4 text-sm leading-[1.33] whitespace-pre-line">
           {summary.text}
           <SourceTag source={summary.source} />
         </div>
@@ -76,8 +76,8 @@ export function AssistantBox({ analysisId, initialSummary }: { analysisId: strin
 
       {thread.map((t, i) => (
         <div key={i} className="mt-3 space-y-2 text-[14px]">
-          <p className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-ink px-3 py-2 text-white">{t.q}</p>
-          <div className="max-w-[92%] rounded-2xl rounded-bl-md bg-ground px-3 py-2 leading-relaxed whitespace-pre-line">
+          <p className="ml-auto w-fit max-w-[85%] rounded-xs bg-ink px-3 py-2 text-white">{t.q}</p>
+          <div className="max-w-[92%] rounded-xs border border-powder px-3 py-2 leading-[1.33] whitespace-pre-line">
             {t.a.text}
             <SourceTag source={t.a.source} />
           </div>
@@ -90,7 +90,7 @@ export function AssistantBox({ analysisId, initialSummary }: { analysisId: strin
             key={s}
             onClick={() => ask(s)}
             disabled={asking}
-            className="rounded-full border border-line px-3 py-1.5 text-xs font-medium text-ink-soft hover:border-accent hover:text-accent disabled:opacity-50"
+            className="rounded-xs border border-powder px-2.5 py-1.5 text-xs text-ink hover:border-ink disabled:opacity-50"
           >
             {s}
           </button>
@@ -109,7 +109,7 @@ export function AssistantBox({ analysisId, initialSummary }: { analysisId: strin
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="Ex.: o que o fenoxietanol faz?"
           maxLength={500}
-          className="min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 py-2.5 text-[15px] outline-none focus:border-accent"
+          className="min-w-0 flex-1 border-0 border-b border-ink bg-transparent px-0 py-2.5 text-sm font-light outline-none placeholder:text-muted focus:border-black"
         />
         <Button type="submit" disabled={asking || question.trim().length < 3} className="px-4">
           {asking ? "…" : "Enviar"}

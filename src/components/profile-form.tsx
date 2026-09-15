@@ -106,7 +106,7 @@ export function ProfileForm({ initial }: { initial: ProfileView }) {
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.2em] text-rose">Meu perfil</p>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Meu perfil</p>
             <h1 className="mt-3 text-4xl leading-tight sm:text-5xl">Tudo sobre a sua pele</h1>
             <p className="mt-3 text-base text-ink-soft">Ajuste quando quiser — as próximas análises já usam o que você mudar.</p>
           </div>
@@ -114,12 +114,12 @@ export function ProfileForm({ initial }: { initial: ProfileView }) {
         <div className="grid gap-6 lg:grid-cols-2 lg:items-start">{sections.slice(0, 3)}</div>
         {error && <p className="mt-3 text-sm text-bad">{error}</p>}
         <div className="sticky bottom-20 z-10 mt-6 flex justify-end lg:bottom-6">
-          <Button className="w-full shadow-lg sm:w-auto sm:px-8" onClick={save} disabled={saving}>
+          <Button className="w-full sm:w-auto sm:px-8" onClick={save} disabled={saving}>
             {saving ? "Salvando…" : saved ? "✓ Perfil salvo" : "Salvar alterações"}
           </Button>
         </div>
         <Card className="mt-8">
-          <p className="font-semibold">Seus dados</p>
+          <p className="font-medium">Seus dados</p>
           <p className="mt-1 text-sm text-ink-soft">
             Guardamos seu perfil só neste dispositivo (sem e-mail ou nome). Você pode apagar tudo a qualquer momento.
           </p>
@@ -135,7 +135,7 @@ export function ProfileForm({ initial }: { initial: ProfileView }) {
   return (
     <div className="mx-auto flex max-w-2xl flex-col">
       <div className="mb-4">
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-rose">Seu perfil</p>
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Seu perfil</p>
         <h1 className="mt-3 text-4xl leading-tight sm:text-5xl">Vamos conhecer a sua pele</h1>
         <p className="mt-3 text-base text-ink-soft">Leva cerca de um minuto — e deixa cada análise feita para você.</p>
       </div>
@@ -155,7 +155,7 @@ export function ProfileForm({ initial }: { initial: ProfileView }) {
       </div>
       <div className="mt-3 flex gap-1.5" aria-hidden>
         {STEPS.map((s, i) => (
-          <span key={s} className={cx("h-1 flex-1 rounded-full", i <= step ? "bg-accent" : "bg-line")} />
+          <span key={s} className={cx("h-0.5 flex-1", i <= step ? "bg-ink" : "bg-powder")} />
         ))}
       </div>
 
@@ -191,8 +191,8 @@ function Chip({ selected, onClick, children }: { selected: boolean; onClick: () 
       onClick={onClick}
       aria-pressed={selected}
       className={cx(
-        "rounded-full border px-3.5 py-2 text-sm font-medium transition",
-        selected ? "border-accent bg-accent text-white" : "border-line bg-surface text-ink hover:border-accent/60",
+        "rounded-xs border px-3 py-2 text-sm transition-colors",
+        selected ? "border-ink bg-accent text-ink" : "border-powder bg-surface text-ink hover:border-ink",
       )}
     >
       {children}
@@ -212,12 +212,12 @@ function SkinSection({ profile, update }: SectionProps) {
             onClick={() => update({ skinType: t.value })}
             aria-pressed={profile.skinType === t.value}
             className={cx(
-              "rounded-xl border p-3 text-left transition",
+              "rounded-xs border p-3 text-left transition-colors",
               t.value === "unknown" && "col-span-2",
-              profile.skinType === t.value ? "border-accent bg-accent-soft ring-1 ring-accent" : "border-line hover:border-accent/50",
+              profile.skinType === t.value ? "border-ink bg-powder" : "border-powder hover:border-ink",
             )}
           >
-            <span className="block font-semibold">{t.label}</span>
+            <span className="block font-medium">{t.label}</span>
             <span className="block text-xs text-ink-soft">{t.hint}</span>
           </button>
         ))}
@@ -260,7 +260,7 @@ function ConcernSection({ profile, update }: SectionProps) {
 
 function StrictnessToggle({ value, onChange }: { value: Strictness; onChange: (s: Strictness) => void }) {
   return (
-    <div className="flex shrink-0 rounded-lg border border-line p-0.5 text-xs font-semibold">
+    <div className="flex shrink-0 rounded-xs border border-powder p-0.5 text-xs font-medium">
       {([
         ["strict", "Não quero"],
         ["soft", "Prefiro evitar"],
@@ -269,7 +269,7 @@ function StrictnessToggle({ value, onChange }: { value: Strictness; onChange: (s
           key={v}
           type="button"
           onClick={() => onChange(v)}
-          className={cx("rounded-md px-2 py-1", value === v ? (v === "strict" ? "bg-bad text-white" : "bg-caution text-white") : "text-ink-soft")}
+          className={cx("rounded-xs px-2 py-1",value === v ? (v === "strict" ? "bg-bad text-white" : "bg-caution text-white") : "text-ink-soft")}
         >
           {label}
         </button>
@@ -343,10 +343,10 @@ function AvoidSection({ profile, update }: SectionProps) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Ex.: lanolina, parabeno, linalool"
-          className="mt-3 w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-[15px] outline-none focus:border-accent"
+          className="mt-3 w-full border-0 border-b border-ink bg-transparent px-0 py-2.5 text-sm font-light outline-none placeholder:text-muted focus:border-black"
         />
         {results.length > 0 && (
-          <ul className="mt-2 max-h-56 overflow-auto rounded-xl border border-line">
+          <ul className="mt-2 max-h-56 overflow-auto rounded-xs border border-powder">
             {results.map((r) => {
               const added = profile.avoidIngredients.some((a) => a.ingredientId === r.id);
               return (
@@ -369,7 +369,7 @@ function AvoidSection({ profile, update }: SectionProps) {
                         {r.matchedAlias && ` · também “${r.matchedAlias}”`}
                       </span>
                     </span>
-                    <span className="font-semibold text-accent">{added ? "Adicionado" : "+ Adicionar"}</span>
+                    <span className="text-xs text-ink underline underline-offset-4">{added ? "Adicionado" : "Adicionar"}</span>
                   </button>
                 </li>
               );
@@ -379,7 +379,7 @@ function AvoidSection({ profile, update }: SectionProps) {
         {profile.avoidIngredients.length > 0 && (
           <ul className="mt-3 space-y-2">
             {profile.avoidIngredients.map((a) => (
-              <li key={a.ingredientId} className="flex items-center gap-2 rounded-xl bg-ground px-3 py-2">
+              <li key={a.ingredientId} className="flex items-center gap-2 border-b border-powder py-2">
                 <span className="min-w-0 flex-1 truncate text-sm font-medium">{a.inciName}</span>
                 <StrictnessToggle
                   value={a.strictness}
@@ -416,7 +416,7 @@ function ConsentSection({ consent, setConsent }: { consent: boolean; setConsent:
         <li>• Você pode apagar tudo a qualquer momento em “Perfil”.</li>
         <li>• As análises são educativas e não substituem um dermatologista.</li>
       </ul>
-      <label className="mt-4 flex items-start gap-3 rounded-xl bg-ground p-3">
+      <label className="mt-4 flex items-start gap-3 rounded-xs border border-powder p-3">
         <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-5 w-5 accent-[var(--color-accent)]" />
         <span className="text-sm font-medium">Concordo em salvar essas informações para receber análises personalizadas.</span>
       </label>

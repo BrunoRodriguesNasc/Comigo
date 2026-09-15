@@ -3,7 +3,7 @@ type IconProps = { className?: string };
 function icon(d: string) {
   return function Icon({ className = "h-5 w-5" }: IconProps) {
     return (
-      <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d={d} />
       </svg>
     );

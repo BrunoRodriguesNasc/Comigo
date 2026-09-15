@@ -13,8 +13,8 @@ const fmt = (n: number) => `${n > 0 ? "+" : n < 0 ? "−" : ""}${Math.abs(n).toL
 
 export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
   return (
-    <details className="group rounded-2xl border border-line bg-surface">
-      <summary className="flex items-center justify-between gap-2 p-4 font-semibold">
+    <details className="group rounded-xs border border-ink bg-surface">
+      <summary className="flex items-center justify-between gap-2 p-4 font-medium">
         <span>Como chegamos nessa avaliação</span>
         <span className="text-muted transition group-open:rotate-180">⌄</span>
       </summary>
@@ -33,7 +33,7 @@ export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
                 </td>
                 <td
                   className={cx(
-                    "whitespace-nowrap py-2 text-right font-semibold tabular-nums",
+                    "whitespace-nowrap py-2 text-right font-medium tabular-nums",
                     c.code === "base" ? "text-ink" : c.points > 0 ? "text-good" : c.points < 0 ? "text-bad" : "text-muted",
                   )}
                 >
@@ -42,8 +42,8 @@ export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
               </tr>
             ))}
             <tr>
-              <td className="pt-3 font-bold">Nota final</td>
-              <td className="pt-3 text-right text-base font-bold tabular-nums">{result.score}</td>
+              <td className="pt-3 font-medium">Nota final</td>
+              <td className="pt-3 text-right text-base font-medium tabular-nums">{result.score}</td>
             </tr>
           </tbody>
         </table>
@@ -58,8 +58,8 @@ export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
                 </span>
                 <span className="tabular-nums">{Math.round(d.subscore)}/100</span>
               </div>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-ground">
-                <div className="h-full rounded-full bg-ink/70" style={{ width: `${d.subscore}%` }} />
+              <div className="mt-1 h-0.5 overflow-hidden bg-powder">
+                <div className="h-full bg-ink" style={{ width: `${d.subscore}%` }} />
               </div>
             </li>
           ))}
