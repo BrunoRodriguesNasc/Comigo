@@ -1,27 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Fraunces, Nunito } from "next/font/google";
 import { ServiceWorker } from "@/components/service-worker";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
+const nunito = Nunito({ subsets: ["latin"], display: "swap", variable: "--font-nunito" });
+const fraunces = Fraunces({ subsets: ["latin"], display: "swap", variable: "--font-fraunces", axes: ["SOFT", "opsz"] });
 
 export const metadata: Metadata = {
-  title: "Desrotulando Beleza",
-  description: "Escaneie um cosmético e descubra se ele combina com você — com os motivos explicados.",
+  title: { default: "COMIGO — o cosmético que combina com você", template: "%s · COMIGO" },
+  description: "Analise um cosmético e descubra se ele combina com a sua pele e as suas preferências — com os motivos explicados.",
   manifest: "/manifest.webmanifest",
   icons: { icon: "/icons/icon.svg", apple: "/icons/icon-192.png" },
-  appleWebApp: { capable: true, title: "Desrotulando", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "COMIGO", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#b83b67",
+  themeColor: "#fdf8f3",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={inter.variable}>
+    <html lang="pt-BR" className={`${nunito.variable} ${fraunces.variable}`}>
       <body className="min-h-dvh font-sans antialiased">
         {children}
         <ServiceWorker />

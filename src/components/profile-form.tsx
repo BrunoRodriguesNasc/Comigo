@@ -104,12 +104,16 @@ export function ProfileForm({ initial }: { initial: ProfileView }) {
   if (editing) {
     return (
       <div>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight">Meu perfil</h1>
-        <p className="mt-1 text-[15px] text-ink-soft">Ajuste quando quiser — as próximas análises usam o perfil atualizado.</p>
-        <div className="mt-4 space-y-3">{sections.slice(0, 3)}</div>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Meu perfil</h1>
+            <p className="mt-1 text-sm text-ink-soft">Ajuste quando quiser — as próximas análises usam o perfil atualizado.</p>
+          </div>
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-start">{sections.slice(0, 3)}</div>
         {error && <p className="mt-3 text-sm text-bad">{error}</p>}
-        <div className="sticky bottom-24 z-10 mt-4">
-          <Button className="w-full shadow-lg" onClick={save} disabled={saving}>
+        <div className="sticky bottom-20 z-10 mt-6 flex justify-end lg:bottom-6">
+          <Button className="w-full shadow-lg sm:w-auto sm:px-8" onClick={save} disabled={saving}>
             {saving ? "Salvando…" : saved ? "✓ Perfil salvo" : "Salvar alterações"}
           </Button>
         </div>
@@ -128,15 +132,19 @@ export function ProfileForm({ initial }: { initial: ProfileView }) {
 
   const last = step === STEPS.length - 1;
   return (
-    <div className="flex min-h-[calc(100dvh-3rem)] flex-col">
+    <div className="mx-auto flex max-w-2xl flex-col">
+      <div className="mb-4">
+        <h1 className="text-2xl font-semibold tracking-tight">Crie seu perfil</h1>
+        <p className="mt-1 text-sm text-ink-soft">Leva cerca de 1 minuto e deixa cada análise personalizada para você.</p>
+      </div>
       <div className="flex items-center justify-between">
         {step > 0 ? (
           <button onClick={() => setStep(step - 1)} className="text-sm font-medium text-ink-soft">
             ← Voltar
           </button>
         ) : (
-          <Link href="/" className="text-sm font-medium text-ink-soft">
-            ← Início
+          <Link href="/painel" className="text-sm font-medium text-ink-soft">
+            ← Painel
           </Link>
         )}
         <span className="text-xs font-medium text-muted">
@@ -297,7 +305,7 @@ function AvoidSection({ profile, update }: SectionProps) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="grid gap-6 lg:col-span-2 lg:grid-cols-2 lg:items-start">
       <Card>
         <h2 className="text-lg font-bold">Preferências</h2>
         <p className="text-sm text-ink-soft">

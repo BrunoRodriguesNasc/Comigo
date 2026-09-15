@@ -1,6 +1,6 @@
 // Service worker mínimo: cache do app shell e dos assets estáticos. API sempre vai à rede.
-const CACHE = "desrotulando-v1";
-const SHELL = ["/", "/escanear", "/manifest.webmanifest", "/icons/icon.svg"];
+const CACHE = "comigo-v1";
+const SHELL = ["/", "/painel", "/escanear", "/manifest.webmanifest", "/icons/icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

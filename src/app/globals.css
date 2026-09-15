@@ -1,27 +1,48 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-nunito), ui-rounded, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
 
-  --color-ink: #1d2230;
-  --color-ink-soft: #4a5163;
-  --color-muted: #7b8193;
-  --color-line: #e8e2dd;
+  /* Base creme, texto ameixa-acinzentado */
+  --color-ink: #3b3246;
+  --color-ink-soft: #6b6275;
+  --color-muted: #7d748a;
+  --color-line: #efe4dc;
   --color-surface: #ffffff;
-  --color-ground: #faf6f2;
+  --color-ground: #fdf8f3;
 
-  --color-accent: #b83b67;
-  --color-accent-soft: #fbe9ef;
-  --color-accent-strong: #962a52;
+  /* Marca COMIGO: lilás/ameixa */
+  --color-accent: #7c5a93;
+  --color-accent-soft: #f3ecf8;
+  --color-accent-strong: #654878;
 
-  --color-good: #1f7a47;
-  --color-good-soft: #e3f4ea;
-  --color-caution: #9a6412;
-  --color-caution-soft: #fdf1dc;
-  --color-bad: #b42c2c;
-  --color-bad-soft: #fbe6e4;
-  --color-info: #365f91;
-  --color-info-soft: #e7eef8;
+  /* Pastéis decorativos (wellness) */
+  --color-peach: #fde3d3;
+  --color-sage: #dfeadf;
+  --color-lilac: #e9def3;
+  --color-butter: #fbf0cc;
+  --color-blush: #f9dde3;
+
+  /* Vereditos — suaves, mas legíveis */
+  --color-good: #3f7a57;
+  --color-good-soft: #e7f3eb;
+  --color-caution: #9a6420;
+  --color-caution-soft: #fbf0dd;
+  --color-bad: #b24a5c;
+  --color-bad-soft: #fbe8eb;
+  --color-info: #6b6478;
+  --color-info-soft: #f3eff6;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-variation-settings: "SOFT" 100;
+    letter-spacing: -0.01em;
+  }
 }
 
 html,
@@ -45,4 +66,8 @@ details > summary {
 }
 details > summary::-webkit-details-marker {
   display: none;
+}
+
+html {
+  scroll-behavior: smooth;
 }

@@ -20,7 +20,7 @@ export const openBeautyFactsSource: ProductSource = {
     ].join(",");
     const url = `https://world.openbeautyfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?fields=${fields}`;
     const res = await fetch(url, {
-      headers: { "User-Agent": "DesrotulandoBeleza/0.1 (MVP; open-source research)" },
+      headers: { "User-Agent": "COMIGO/0.1 (MVP; open-source research)" },
       signal: AbortSignal.timeout(5000),
       cache: "no-store",
     });

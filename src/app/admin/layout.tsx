@@ -15,7 +15,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
           <Link href="/admin" className="font-bold text-accent">
-            Admin · Desrotulando
+            Admin · COMIGO
           </Link>
           <nav className="flex flex-wrap gap-1 text-sm">
             {TABS.map((t) => (

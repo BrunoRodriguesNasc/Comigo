@@ -1,4 +1,6 @@
-# Desrotulando Beleza (MVP)
+# COMIGO (MVP)
+
+SaaS web para consumidor final: landing page em `/` e app com sidebar em `/painel` (responsivo, com PWA e scanner em destaque no celular).
 
 > Escaneie um cosmético e descubra **se ele combina com você** — com os motivos, a evidência e o nível de confiança explicados.
 

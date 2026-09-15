@@ -49,8 +49,7 @@ export function PasteForm({
   }
 
   return (
-    <form onSubmit={submit}>
-      <h1 className="mt-1 text-2xl font-bold tracking-tight">Colar ingredientes</h1>
+    <form onSubmit={submit} className="max-w-3xl">
 
       {reason === "nao-encontrado" && (
         <Card className="mt-3 border-caution/30 bg-caution-soft/70 text-sm">
@@ -63,9 +62,6 @@ export function PasteForm({
           <p className="font-semibold">Encontramos “{productName}”, mas sem lista de ingredientes.</p>
           <p className="mt-1 text-ink-soft">Cole a composição da embalagem para analisarmos.</p>
         </Card>
-      )}
-      {!reason && (
-        <p className="mt-1 text-[15px] text-ink-soft">Útil para produtos sem código ou que ainda não estão no catálogo.</p>
       )}
 
       <Card className="mt-4 space-y-3">

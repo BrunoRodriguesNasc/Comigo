@@ -15,7 +15,7 @@ export const aiEnabled = () => Boolean(process.env.ANTHROPIC_API_KEY);
 let client: Anthropic | null = null;
 const getClient = () => (client ??= new Anthropic());
 
-const SYSTEM_PROMPT = `Você é o assistente do app Desrotulando Beleza, que ajuda pessoas a entender se um cosmético é compatível com o perfil delas.
+const SYSTEM_PROMPT = `Você é o assistente do COMIGO, que ajuda pessoas a entender se um cosmético é compatível com o perfil delas.
 
 Você recebe, dentro de <analise>, o resultado de um motor de regras determinístico: nota, veredito, confiança, achados (com evidência) e a explicação de cada ingrediente. Essa análise é a única fonte de verdade.
 

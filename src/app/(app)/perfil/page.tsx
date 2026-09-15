@@ -1,15 +1,11 @@
-import { AppShell } from "@/components/app-shell";
+import type { Metadata } from "next";
 import { ProfileForm } from "@/components/profile-form";
 import { getProfileView } from "@/server/services/profile";
 import { getUserId } from "@/server/session";
 
-export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Meu perfil" };
 
 export default async function ProfilePage() {
   const view = await getProfileView(await getUserId());
-  return (
-    <AppShell hideNav={!view.exists}>
-      <ProfileForm initial={view} />
-    </AppShell>
-  );
+  return <ProfileForm initial={view} />;
 }
