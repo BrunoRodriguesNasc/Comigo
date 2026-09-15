@@ -1,0 +1,222 @@
+// SQLite em desenvolvimento. Para produção, troque para "postgresql" e ajuste DATABASE_URL.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  consentAt DateTime?
+
+  profile     UserProfile?
+  avoidList   UserAvoidIngredient[]
+  analyses    Analysis[]
+  favorites   Favorite[]
+  submissions ProductSubmission[]
+}
+
+model UserProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skinType    String   @default("unknown") // oily | dry | combination | normal | unknown
+  sensitive   Boolean? // null = não sei
+  concerns    Json // string[]
+  preferences Json // {key, strictness}[]
+  version     Int      @default(1)
+  updatedAt   DateTime @updatedAt
+}
+
+model UserAvoidIngredient {
+  id           String     @id @default(cuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  strictness   String     @default("strict") // strict | soft
+  createdAt    DateTime   @default(now())
+
+  @@unique([userId, ingredientId])
+}
+
+model Brand {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  slug     String    @unique
+  products Product[]
+}
+
+model Category {
+  id       String     @id @default(cuid())
+  slug     String     @unique
+  namePt   String
+  parentId String?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+  products Product[]
+}
+
+model Source {
+  id         String    @id @default(cuid())
+  key        String    @unique // manual | openbeautyfacts | user_submission | bulk_import
+  name       String
+  url        String?
+  license    String?
+  trustLevel Float     @default(0.8)
+  products   Product[]
+}
+
+model Product {
+  id             String    @id @default(cuid())
+  barcode        String?   @unique
+  brandId        String?
+  brand          Brand?    @relation(fields: [brandId], references: [id])
+  name           String
+  categoryId     String?
+  category       Category? @relation(fields: [categoryId], references: [id])
+  subcategory    String?
+  description    String?
+  imageUrl       String?
+  ingredientsRaw String?
+  country        String?
+  sourceId       String
+  source         Source    @relation(fields: [sourceId], references: [id])
+  sourceUrl      String?
+  externalId     String?
+  reviewStatus   String    @default("pending") // pending | verified | rejected
+  verifiedAt     DateTime?
+  attributes     Json
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  ingredients ProductIngredient[]
+  analyses    Analysis[]
+  favorites   Favorite[]
+
+  @@index([categoryId])
+}
+
+model ProductIngredient {
+  id              String      @id @default(cuid())
+  productId       String
+  product         Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  position        Int
+  rawName         String
+  normalized      String
+  ingredientId    String?
+  ingredient      Ingredient? @relation(fields: [ingredientId], references: [id], onDelete: SetNull)
+  matchType       String // exact | alias | fuzzy | unmatched
+  matchConfidence Float
+
+  @@unique([productId, position])
+  @@index([ingredientId])
+}
+
+model Ingredient {
+  id            String   @id @default(cuid())
+  inciName      String   @unique
+  slug          String   @unique
+  displayNamePt String
+  summaryPt     String
+  functions     Json // string[]
+  benefitTags   Json // string[]
+  concerns      Json // {tag, level, evidence, note}[]
+  flags         Json // string[]
+  evidenceLevel String   @default("moderate") // low | moderate | high
+  reviewStatus  String   @default("draft") // draft | reviewed
+  updatedAt     DateTime @updatedAt
+
+  aliases   IngredientAlias[]
+  evidence  IngredientEvidence[]
+  products  ProductIngredient[]
+  avoidedBy UserAvoidIngredient[]
+}
+
+model IngredientAlias {
+  id           String     @id @default(cuid())
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  alias        String
+  normalized   String     @unique
+  kind         String     @default("synonym") // synonym | translation | inn | trade | typo
+  locale       String?
+}
+
+model IngredientEvidence {
+  id           String     @id @default(cuid())
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  claim        String // tag de benefício ou concern
+  stance       String     @default("supports") // supports | mixed | against
+  level        String // low | moderate | high
+  sourceTitle  String
+  sourceUrl    String?
+  notes        String?
+}
+
+model ScoringConfig {
+  id        String   @id @default(cuid())
+  version   Int      @unique
+  active    Boolean  @default(false)
+  config    Json
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model Analysis {
+  id            String   @id @default(cuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId     String?
+  product       Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  inputRaw      String?
+  engineVersion String
+  rulesetHash   String
+  profileHash   String
+  productStamp  String // updatedAt do produto no momento da análise
+  score         Int
+  verdict       String
+  confidence    String
+  result        Json
+  aiSummary     String?
+  createdAt     DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([productId, profileHash, rulesetHash])
+}
+
+model Favorite {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, productId])
+}
+
+model ProductSubmission {
+  id             String   @id @default(cuid())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  barcode        String?
+  brandName      String?
+  productName    String?
+  ingredientsRaw String
+  status         String   @default("pending") // pending | approved | rejected
+  notes          String?
+  productId      String?
+  createdAt      DateTime @default(now())
+}
+
+model UnmatchedIngredient {
+  normalized String   @id
+  sample     String
+  count      Int      @default(1)
+  lastSeenAt DateTime @default(now())
+}

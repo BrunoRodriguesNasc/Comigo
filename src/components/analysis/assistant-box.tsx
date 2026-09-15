@@ -1,0 +1,129 @@
+"use client";
+
+import { useState } from "react";
+import { Button, Card } from "../ui";
+
+interface Reply {
+  text: string;
+  source: "ai" | "rules";
+}
+
+const SUGGESTIONS = ["Por que essa nota?", "Qual ingrediente é o problema?", "É bom para pele oleosa?", "O que ajuda na hidratação?"];
+
+export function AssistantBox({ analysisId, initialSummary }: { analysisId: string; initialSummary: string | null }) {
+  const [summary, setSummary] = useState<Reply | null>(initialSummary ? { text: initialSummary, source: "ai" } : null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [thread, setThread] = useState<{ q: string; a: Reply }[]>([]);
+  const [asking, setAsking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function loadSummary() {
+    setLoadingSummary(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/analyses/${analysisId}/summary`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setSummary(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Não foi possível gerar o resumo.");
+    } finally {
+      setLoadingSummary(false);
+    }
+  }
+
+  async function ask(q: string) {
+    if (q.trim().length < 3) return;
+    setAsking(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ analysisId, question: q }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setThread((t) => [...t, { q, a: data }]);
+      setQuestion("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Não foi possível responder agora.");
+    } finally {
+      setAsking(false);
+    }
+  }
+
+  return (
+    <Card>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="font-bold">Pergunte sobre este produto</h2>
+          <p className="mt-0.5 text-sm text-ink-soft">As respostas usam só os dados desta análise.</p>
+        </div>
+      </div>
+
+      {summary ? (
+        <div className="mt-3 rounded-xl bg-accent-soft/60 p-3 text-[14px] leading-relaxed whitespace-pre-line">
+          {summary.text}
+          <SourceTag source={summary.source} />
+        </div>
+      ) : (
+        <Button variant="secondary" className="mt-3 w-full" onClick={loadSummary} disabled={loadingSummary}>
+          {loadingSummary ? "Gerando resumo…" : "✨ Resumo personalizado"}
+        </Button>
+      )}
+
+      {thread.map((t, i) => (
+        <div key={i} className="mt-3 space-y-2 text-[14px]">
+          <p className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-ink px-3 py-2 text-white">{t.q}</p>
+          <div className="max-w-[92%] rounded-2xl rounded-bl-md bg-ground px-3 py-2 leading-relaxed whitespace-pre-line">
+            {t.a.text}
+            <SourceTag source={t.a.source} />
+          </div>
+        </div>
+      ))}
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {SUGGESTIONS.map((s) => (
+          <button
+            key={s}
+            onClick={() => ask(s)}
+            disabled={asking}
+            className="rounded-full border border-line px-3 py-1.5 text-xs font-medium text-ink-soft hover:border-accent hover:text-accent disabled:opacity-50"
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
+      <form
+        className="mt-3 flex gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          ask(question);
+        }}
+      >
+        <input
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="Ex.: o que o fenoxietanol faz?"
+          maxLength={500}
+          className="min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 py-2.5 text-[15px] outline-none focus:border-accent"
+        />
+        <Button type="submit" disabled={asking || question.trim().length < 3} className="px-4">
+          {asking ? "…" : "Enviar"}
+        </Button>
+      </form>
+      {error && <p className="mt-2 text-sm text-bad">{error}</p>}
+    </Card>
+  );
+}
+
+function SourceTag({ source }: { source: Reply["source"] }) {
+  return (
+    <span className="mt-2 block text-[11px] text-muted">
+      {source === "ai" ? "Gerado por IA a partir da análise estruturada." : "Resposta automática a partir da análise (IA desativada)."}
+    </span>
+  );
+}
