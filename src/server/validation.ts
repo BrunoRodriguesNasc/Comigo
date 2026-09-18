@@ -40,3 +40,8 @@ export const askSchema = z.object({
   analysisId: z.string().min(1),
   question: z.string().trim().min(3).max(500),
 });
+
+export const analyzeImageSchema = z.object({
+  imageData: z.string().min(1, "Imagem obrigatória."),
+  mimeType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"] as const),
+});
