@@ -1,12 +1,13 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { logEvent } from "../log";
 
-const MODEL = process.env.AI_MODEL || "claude-opus-5";
+const VISION_MODEL = "gpt-4o";
 
-let client: Anthropic | null = null;
-const getClient = () => (client ??= new Anthropic());
+let client: OpenAI | null = null;
+const getClient = () =>
+  (client ??= new OpenAI({ apiKey: process.env.OPEN_AI_API_KEY }));
 
-export const visionEnabled = () => Boolean(process.env.ANTHROPIC_API_KEY);
+export const visionEnabled = () => Boolean(process.env.OPEN_AI_API_KEY);
 
 export interface ExtractedField {
   value: string | null;
@@ -65,22 +66,25 @@ const EMPTY_ANALYSIS: ProductImageAnalysis = {
   imageQuality: { readable: false, issues: ["IA de visão indisponível"] },
 };
 
-export async function analyzeProductImage(base64Data: string, mimeType: SupportedMime): Promise<ProductImageAnalysis> {
+export async function analyzeProductImage(
+  base64Data: string,
+  mimeType: SupportedMime
+): Promise<ProductImageAnalysis> {
   if (!visionEnabled()) return EMPTY_ANALYSIS;
 
   const start = performance.now();
   try {
-    const response = await getClient().messages.create({
-      model: MODEL,
+    const response = await getClient().chat.completions.create({
+      model: VISION_MODEL,
       max_tokens: 2000,
-      system: SYSTEM_PROMPT,
       messages: [
+        { role: "system", content: SYSTEM_PROMPT },
         {
           role: "user",
           content: [
             {
-              type: "image",
-              source: { type: "base64", media_type: mimeType, data: base64Data },
+              type: "image_url",
+              image_url: { url: `data:${mimeType};base64,${base64Data}`, detail: "high" },
             },
             { type: "text", text: USER_PROMPT },
           ],
@@ -88,23 +92,24 @@ export async function analyzeProductImage(base64Data: string, mimeType: Supporte
       ],
     });
 
+    const usage = response.usage;
     logEvent("vision.call", {
       model: response.model,
-      stop: response.stop_reason,
-      input: response.usage.input_tokens,
-      output: response.usage.output_tokens,
+      stop: response.choices[0]?.finish_reason,
+      input: usage?.prompt_tokens ?? 0,
+      output: usage?.completion_tokens ?? 0,
       ms: Math.round(performance.now() - start),
     });
 
-    const text = response.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("").trim();
+    const text = response.choices[0]?.message?.content?.trim() ?? "";
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return EMPTY_ANALYSIS;
 
     const parsed = JSON.parse(jsonMatch[0]) as ProductImageAnalysis;
     return parsed;
   } catch (err) {
-    if (err instanceof Anthropic.RateLimitError) logEvent("vision.rate_limited", { ms: Math.round(performance.now() - start) });
-    else if (err instanceof Anthropic.APIError) logEvent("vision.api_error", { status: err.status, error: err.message });
+    const status = (err as { status?: number }).status;
+    if (status === 429) logEvent("vision.rate_limited", { ms: Math.round(performance.now() - start) });
     else logEvent("vision.error", { error: String(err) });
     return EMPTY_ANALYSIS;
   }
