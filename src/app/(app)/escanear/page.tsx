@@ -1,19 +1,18 @@
 import type { Metadata } from "next";
-import { Scanner } from "@/components/scanner";
+import { ImageCapture } from "@/components/image-capture";
 import { PageHeader } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Analisar" };
 
-export default async function ScanPage({ searchParams }: { searchParams: Promise<{ perfil?: string }> }) {
-  const { perfil } = await searchParams;
+export default function ScanPage() {
   return (
     <>
       <PageHeader
         eyebrow="Analisar"
-        title="Qual produto você está olhando?"
-        description="Aponte a câmera para o código de barras, digite os números ou cole a lista de ingredientes. A gente cuida do resto."
+        title="Mostre o produto"
+        description="Fotografe a embalagem ou use a câmera ao vivo — a gente identifica o produto e analisa para a sua pele."
       />
-      <Scanner profileJustCreated={perfil === "criado"} />
+      <ImageCapture />
     </>
   );
 }
