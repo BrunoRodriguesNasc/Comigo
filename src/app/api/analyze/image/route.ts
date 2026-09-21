@@ -1,6 +1,7 @@
 import { analyzeProductImage, visionEnabled } from "@/server/ai/vision";
 import { route } from "@/server/http";
 import { analyzeProductForUser, analyzeTextForUser } from "@/server/services/analysis";
+import { findProductByBarcode } from "@/server/services/lookup";
 import { resolveFromVision } from "@/server/services/product-resolver";
 import { requireUserId } from "@/server/session";
 import { analyzeImageSchema } from "@/server/validation";
@@ -38,6 +39,30 @@ export const POST = route(async (req: Request) => {
       source: "ingredients_ocr",
       visionData: vision,
     };
+  }
+
+  // Fallback via código de barras extraído → Open Beauty Facts (persiste no catálogo)
+  const barcodeRaw = vision.barcode?.value?.replace(/\s/g, "") ?? null;
+  const barcodeConf = vision.barcode?.confidence ?? 0;
+  if (barcodeRaw && /^\d{8,14}$/.test(barcodeRaw) && barcodeConf >= 0.6) {
+    const found = await findProductByBarcode(barcodeRaw);
+    if (found) {
+      if (found.ingredientsRaw) {
+        const analysis = await analyzeProductForUser(found.id, userId);
+        return { status: "analyzed", analysisId: analysis.id, source: "barcode_obf", visionData: vision };
+      }
+      return {
+        status: "no_ingredients",
+        resolution: {
+          status: "resolved",
+          bestMatch: { productId: found.id, name: found.name, brand: found.brand?.name ?? null, hasIngredients: false },
+          candidates: [],
+          confidence: barcodeConf,
+          evidence: ["Código de barras via Open Beauty Facts"],
+        },
+        visionData: vision,
+      };
+    }
   }
 
   // Tentar resolver produto no catálogo
