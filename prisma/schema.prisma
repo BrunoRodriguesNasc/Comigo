@@ -1,11 +1,11 @@
-// SQLite em desenvolvimento. Para produção, troque para "postgresql" e ajuste DATABASE_URL.
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -26,8 +26,8 @@ model UserProfile {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   skinType    String   @default("unknown") // oily | dry | combination | normal | unknown
   sensitive   Boolean? // null = não sei
-  concerns    Json // string[]
-  preferences Json // {key, strictness}[]
+  concerns    Json @db.JsonB // string[]
+  preferences Json @db.JsonB // {key, strictness}[]
   version     Int      @default(1)
   updatedAt   DateTime @updatedAt
 }
@@ -90,15 +90,18 @@ model Product {
   externalId     String?
   reviewStatus   String    @default("pending") // pending | verified | rejected
   verifiedAt     DateTime?
-  attributes     Json
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  attributes     Json     @db.JsonB
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   ingredients ProductIngredient[]
   analyses    Analysis[]
   favorites   Favorite[]
 
   @@index([categoryId])
+  @@index([brandId])
+  @@index([reviewStatus])
+  @@index([sourceId])
 }
 
 model ProductIngredient {
@@ -123,10 +126,10 @@ model Ingredient {
   slug          String   @unique
   displayNamePt String
   summaryPt     String
-  functions     Json // string[]
-  benefitTags   Json // string[]
-  concerns      Json // {tag, level, evidence, note}[]
-  flags         Json // string[]
+  functions     Json @db.JsonB // string[]
+  benefitTags   Json @db.JsonB // string[]
+  concerns      Json @db.JsonB // {tag, level, evidence, note}[]
+  flags         Json @db.JsonB // string[]
   evidenceLevel String   @default("moderate") // low | moderate | high
   reviewStatus  String   @default("draft") // draft | reviewed
   updatedAt     DateTime @updatedAt
@@ -163,7 +166,7 @@ model ScoringConfig {
   id        String   @id @default(cuid())
   version   Int      @unique
   active    Boolean  @default(false)
-  config    Json
+  config    Json @db.JsonB
   note      String?
   createdAt DateTime @default(now())
 }
@@ -182,7 +185,7 @@ model Analysis {
   score         Int
   verdict       String
   confidence    String
-  result        Json
+  result        Json @db.JsonB
   aiSummary     String?
   createdAt     DateTime @default(now())
 

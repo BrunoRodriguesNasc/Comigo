@@ -41,7 +41,13 @@ export const askSchema = z.object({
   question: z.string().trim().min(3).max(500),
 });
 
+export const analyzeProductSchema = z.object({
+  productId: z.string().min(1),
+});
+
 export const analyzeImageSchema = z.object({
   imageData: z.string().min(1, "Imagem obrigatória."),
   mimeType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"] as const),
+  /** Leitura do verso: anexa os ingredientes lidos a este produto já identificado. */
+  targetProductId: z.string().min(1).optional(),
 });

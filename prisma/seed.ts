@@ -22,6 +22,8 @@ async function main() {
     },
     { key: "user_submission", name: "Enviado por usuário", trustLevel: 0.7, license: null, url: null },
     { key: "bulk_import", name: "Importação em lote", trustLevel: 0.85, license: null, url: null },
+    { key: "vision_ai", name: "Identificação por IA (câmera)", trustLevel: 0.6, license: null, url: null },
+    { key: "web_ai", name: "Ingredientes encontrados na web por IA (não verificados)", trustLevel: 0.5, license: null, url: null },
   ];
   for (const s of sources) await db.source.upsert({ where: { key: s.key }, update: s, create: s });
 

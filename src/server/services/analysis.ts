@@ -15,6 +15,15 @@ type ProductRow = Product & { brand: Brand | null; category: Category | null; so
 
 const REVIEW_FACTOR: Record<string, number> = { verified: 1, pending: 0.9, rejected: 0.5 };
 
+function sourceLabel(p: ProductRow) {
+  let host: string | null = null;
+  try {
+    host = p.sourceUrl ? new URL(p.sourceUrl).hostname.replace(/^www\./, "") : null;
+  } catch {}
+  const where = p.source.key === "web_ai" && host ? ` — encontrados em ${host}; confira com a embalagem` : "";
+  return p.source.name + where + (p.reviewStatus === "verified" ? "" : " · aguardando revisão");
+}
+
 export function productInput(p: ProductRow): ProductInput {
   return {
     id: p.id,
@@ -23,7 +32,7 @@ export function productInput(p: ProductRow): ProductInput {
     category: p.category?.slug ?? null,
     attributes: (p.attributes as ProductAttributes) ?? {},
     dataReliability: p.source.trustLevel * (REVIEW_FACTOR[p.reviewStatus] ?? 0.9),
-    sourceLabel: p.source.name + (p.reviewStatus === "verified" ? "" : " · aguardando revisão"),
+    sourceLabel: sourceLabel(p),
   };
 }
 

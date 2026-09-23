@@ -27,7 +27,9 @@ export interface ProductUpsert {
 export async function ensureBrand(name: string | null | undefined) {
   if (!name?.trim()) return null;
   const clean = name.trim();
-  return db.brand.upsert({ where: { name: clean }, update: {}, create: { name: clean, slug: slugify(clean) } });
+  const slug = slugify(clean);
+  // Chave pelo slug: "PANTENE" e "Pantene" são a mesma marca.
+  return db.brand.upsert({ where: { slug }, update: {}, create: { name: clean, slug } });
 }
 
 /** Registra ingredientes não reconhecidos: é o backlog editorial. */
@@ -87,6 +89,53 @@ export async function upsertProductWithIngredients(input: ProductUpsert) {
       await tx.productIngredient.createMany({
         data: normalized.map((n) => ({
           productId: p.id,
+          position: n.position,
+          rawName: n.rawName,
+          normalized: n.normalized,
+          ingredientId: n.ingredientId,
+          matchType: n.matchType,
+          matchConfidence: n.matchConfidence,
+        })),
+      });
+    }
+    return p;
+  });
+
+  await recordUnmatched(normalized);
+  return product;
+}
+
+/**
+ * Anexa a lista de ingredientes a um produto já existente, preservando os demais campos.
+ * Usado na leitura em duas etapas: frente identifica o produto, verso traz o INCI.
+ */
+export async function attachIngredientsToProduct(
+  productId: string,
+  ingredientsRaw: string,
+  origin: { sourceKey: string; sourceUrl?: string | null },
+) {
+  const source = await db.source.findUnique({ where: { key: origin.sourceKey } });
+  if (!source) throw new Error(`Fonte desconhecida: ${origin.sourceKey}`);
+  const index = await getIngredientIndex();
+  const normalized = normalizeIngredientList(ingredientsRaw, index);
+
+  const product = await db.$transaction(async (tx) => {
+    // A confiança da análise vem da fonte dos ingredientes: troca a fonte e volta para revisão.
+    const p = await tx.product.update({
+      where: { id: productId },
+      data: {
+        ingredientsRaw,
+        sourceId: source.id,
+        sourceUrl: origin.sourceUrl ?? null,
+        reviewStatus: "pending",
+        verifiedAt: null,
+      },
+    });
+    await tx.productIngredient.deleteMany({ where: { productId } });
+    if (normalized.length) {
+      await tx.productIngredient.createMany({
+        data: normalized.map((n) => ({
+          productId,
           position: n.position,
           rawName: n.rawName,
           normalized: n.normalized,

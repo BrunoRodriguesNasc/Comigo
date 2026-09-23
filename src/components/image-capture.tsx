@@ -7,7 +7,7 @@ import { Button, ButtonLink } from "./ui";
 type SupportedMime = "image/jpeg" | "image/png" | "image/webp";
 
 const MAX_BYTES = 5 * 1024 * 1024;
-const VIDEO_INTERVAL_MS = 5000;
+const VIDEO_INTERVAL_MS = 15000;
 
 interface Candidate {
   productId: string;
@@ -36,11 +36,11 @@ function toBase64(file: File): Promise<string> {
   });
 }
 
-async function postImage(imageData: string, mimeType: string): Promise<ApiResult> {
+async function postImage(imageData: string, mimeType: string, targetProductId?: string): Promise<ApiResult> {
   const res = await fetch("/api/analyze/image", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ imageData, mimeType }),
+    body: JSON.stringify({ imageData, mimeType, targetProductId }),
   });
   return res.json() as Promise<ApiResult>;
 }
@@ -71,12 +71,57 @@ function ModeTab({ active, onClick, children }: { active: boolean; onClick: () =
 type ResultState =
   | { kind: "needs_confirmation"; candidates: Candidate[]; summary: string }
   | { kind: "no_ingredients"; productName: string; productId: string }
+  | { kind: "ingredients_not_visible"; productName: string; productId: string }
   | { kind: "not_found"; extractedName: string | null }
   | { kind: "insufficient_image"; issues: string[] }
   | { kind: "error"; message: string };
 
-function ResultView({ result, onReset }: { result: ResultState; onReset: () => void }) {
+interface Target {
+  productId: string;
+  productName: string;
+}
+
+function ResultView({
+  result,
+  onReset,
+  onScanBack,
+}: {
+  result: ResultState;
+  onReset: () => void;
+  onScanBack: (target: Target) => void;
+}) {
   const router = useRouter();
+  const [fetching, setFetching] = useState<string | null>(null);
+
+  /** Sem ingredientes no catálogo: procura na web; só pede o verso se não achar. */
+  const pickCandidate = useCallback(
+    async (c: Candidate) => {
+      const target = { productId: c.productId, productName: c.brand ? `${c.brand} ${c.name}` : c.name };
+      if (c.hasIngredients) {
+        router.push(`/analise?produto=${c.productId}`);
+        return;
+      }
+      setFetching(c.productId);
+      try {
+        const res = await fetch("/api/analyze/product", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: c.productId }),
+        });
+        const data = (await res.json()) as ApiResult;
+        if (data.status === "analyzed" && data.analysisId) {
+          router.push(`/analise/${data.analysisId}`);
+          return;
+        }
+        onScanBack(target);
+      } catch {
+        onScanBack(target);
+      } finally {
+        setFetching(null);
+      }
+    },
+    [onScanBack, router],
+  );
 
   if (result.kind === "needs_confirmation") {
     return (
@@ -86,13 +131,18 @@ function ResultView({ result, onReset }: { result: ResultState; onReset: () => v
           {result.candidates.map((c) => (
             <li key={c.productId}>
               <button
-                onClick={() => { if (c.hasIngredients) router.push(`/analise?produto=${c.productId}`); else onReset(); }}
-                className="group w-full py-4 text-left"
+                onClick={() => void pickCandidate(c)}
+                disabled={fetching !== null}
+                className="group w-full py-4 text-left disabled:opacity-50"
               >
                 <p className="text-base group-hover:underline group-hover:underline-offset-4">
                   {c.brand ? `${c.brand} · ` : ""}{c.name}
                 </p>
-                {!c.hasIngredients && <p className="mt-0.5 text-xs text-muted">Sem ingredientes cadastrados</p>}
+                {!c.hasIngredients && (
+                  <p className="mt-0.5 text-xs text-muted">
+                    {fetching === c.productId ? "Procurando a lista de ingredientes…" : "Sem ingredientes ainda"}
+                  </p>
+                )}
               </button>
             </li>
           ))}
@@ -105,13 +155,35 @@ function ResultView({ result, onReset }: { result: ResultState; onReset: () => v
     );
   }
 
-  if (result.kind === "no_ingredients") {
+  if (result.kind === "no_ingredients" || result.kind === "ingredients_not_visible") {
+    const retry = result.kind === "ingredients_not_visible";
+    const { productId, productName } = result;
     return (
       <div className="mt-8">
-        <p className="text-base">Encontramos <strong>{result.productName}</strong>, mas ele ainda não tem ingredientes cadastrados.</p>
+        {retry ? (
+          <>
+            <p className="text-base">Ainda não consegui ler a lista de <strong>{productName}</strong>.</p>
+            <p className="mt-2 text-sm text-muted">
+              Aproxime a câmera do texto dos ingredientes e mantenha a embalagem firme e bem iluminada.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-base">Identificamos <strong>{productName}</strong>.</p>
+            <p className="mt-2 text-sm text-muted">
+              Agora <strong>vire a embalagem</strong> e mostre a lista de ingredientes — ela costuma ficar no verso ou
+              embaixo, começando por <em>Aqua</em> ou <em>Água</em>.
+            </p>
+          </>
+        )}
         <div className="mt-6 flex flex-wrap gap-4">
-          <ButtonLink href={`/colar?nome=${encodeURIComponent(result.productName)}`}>Colar ingredientes</ButtonLink>
-          <Button variant="secondary" onClick={onReset}>Tentar de novo</Button>
+          <Button onClick={() => onScanBack({ productId, productName })}>
+            {retry ? "Tentar ler de novo" : "Escanear ingredientes"}
+          </Button>
+          <ButtonLink href={`/colar?nome=${encodeURIComponent(productName)}`} variant="secondary">
+            Colar ingredientes
+          </ButtonLink>
+          <Button variant="ghost" onClick={onReset}>Começar de novo</Button>
         </div>
       </div>
     );
@@ -133,9 +205,14 @@ function ResultView({ result, onReset }: { result: ResultState; onReset: () => v
   if (result.kind === "not_found") {
     return (
       <div className="mt-8">
-        <p className="text-base">
-          {result.extractedName ? `Não encontramos "${result.extractedName}" no catálogo.` : "Não conseguimos identificar o produto."}
-        </p>
+        {result.extractedName ? (
+          <>
+            <p className="text-base">Identificamos <strong>{result.extractedName}</strong>, mas ele ainda não está no nosso catálogo.</p>
+            <p className="mt-2 text-sm text-muted">Aponte para o <strong>código de barras</strong> ou a <strong>lista de ingredientes</strong> na embalagem para continuarmos a análise.</p>
+          </>
+        ) : (
+          <p className="text-base">Não conseguimos identificar o produto. Tente um ângulo diferente ou mais iluminado.</p>
+        )}
         <div className="mt-6 flex flex-wrap gap-4">
           <Button onClick={onReset}>Tentar de novo</Button>
           <ButtonLink href="/colar" variant="secondary">Colar ingredientes</ButtonLink>
@@ -154,13 +231,16 @@ function ResultView({ result, onReset }: { result: ResultState; onReset: () => v
 
 // ─── API result → state ────────────────────────────────────────────────────
 
-function parseApiResult(data: ApiResult): ResultState | null {
+function parseApiResult(data: ApiResult, target?: Target | null): ResultState | null {
+  if (data.status === "ingredients_not_visible" && target) {
+    return { kind: "ingredients_not_visible", productName: target.productName, productId: target.productId };
+  }
   if (data.status === "needs_confirmation" && data.resolution) {
     return { kind: "needs_confirmation", candidates: data.resolution.candidates, summary: extractName(data.visionData) ?? "produto" };
   }
   if (data.status === "no_ingredients" && data.resolution?.bestMatch) {
-    const { name, productId } = data.resolution.bestMatch;
-    return { kind: "no_ingredients", productName: name, productId };
+    const { name, brand, productId } = data.resolution.bestMatch;
+    return { kind: "no_ingredients", productName: brand ? `${brand} ${name}` : name, productId };
   }
   if (data.status === "insufficient_image") {
     return { kind: "insufficient_image", issues: data.issues ?? [] };
@@ -176,21 +256,35 @@ function parseApiResult(data: ApiResult): ResultState | null {
 
 // ─── photo mode ────────────────────────────────────────────────────────────
 
-const STEPS = ["Olhando o seu produto...", "Lendo as informações da embalagem...", "Procurando no catálogo...", "Quase lá..."];
+const STEPS = [
+  "Lendo a embalagem com IA...",
+  "Identificando marca e produto...",
+  "Procurando no catálogo...",
+  "Buscando a lista de ingredientes...",
+  "Calculando compatibilidade...",
+];
 
 type PhotoPhase =
   | { kind: "idle" }
   | { kind: "preview"; file: File; url: string }
-  | { kind: "analyzing"; step: string }
+  | { kind: "analyzing"; stepIdx: number; previewUrl: string }
   | { kind: "result"; result: ResultState };
 
 function PhotoMode() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [phase, setPhase] = useState<PhotoPhase>({ kind: "idle" });
+  const [target, setTarget] = useState<Target | null>(null);
 
   const reset = useCallback(() => {
     if (inputRef.current) inputRef.current.value = "";
+    setTarget(null);
+    setPhase({ kind: "idle" });
+  }, []);
+
+  const scanBack = useCallback((t: Target) => {
+    if (inputRef.current) inputRef.current.value = "";
+    setTarget(t);
     setPhase({ kind: "idle" });
   }, []);
 
@@ -208,31 +302,31 @@ function PhotoMode() {
 
   const analyze = useCallback(async () => {
     if (phase.kind !== "preview") return;
-    const { file } = phase;
+    const { file, url: previewUrl } = phase;
 
     let stepIdx = 0;
-    setPhase({ kind: "analyzing", step: STEPS[0] });
+    setPhase({ kind: "analyzing", stepIdx: 0, previewUrl });
     const timer = setInterval(() => {
       stepIdx = Math.min(stepIdx + 1, STEPS.length - 1);
-      setPhase((p) => p.kind === "analyzing" ? { kind: "analyzing", step: STEPS[stepIdx] } : p);
-    }, 2200);
+      setPhase((p) => p.kind === "analyzing" ? { ...p, stepIdx } : p);
+    }, 3000);
 
     try {
       const imageData = await toBase64(file);
-      const data = await postImage(imageData, file.type as SupportedMime);
+      const data = await postImage(imageData, file.type as SupportedMime, target?.productId);
       clearInterval(timer);
 
       if (data.status === "analyzed" && data.analysisId) {
         router.push(`/analise/${data.analysisId}`);
         return;
       }
-      const result = parseApiResult(data) ?? { kind: "error" as const, message: "Resposta inesperada do servidor." };
+      const result = parseApiResult(data, target) ?? { kind: "error" as const, message: "Resposta inesperada do servidor." };
       setPhase({ kind: "result", result });
     } catch {
       clearInterval(timer);
       setPhase({ kind: "result", result: { kind: "error", message: "Não foi possível enviar a foto. Verifique sua conexão." } });
     }
-  }, [phase, router]);
+  }, [phase, router, target]);
 
   if (phase.kind === "idle") {
     return (
@@ -247,16 +341,19 @@ function PhotoMode() {
             onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
           />
           <div className="flex flex-col items-center gap-5 border border-ink bg-surface px-8 py-14 text-center transition-colors group-hover:bg-powder">
-            <span className="text-[48px] leading-none" aria-hidden>📷</span>
+            <span className="text-[48px] leading-none" aria-hidden>{target ? "🔄" : "📷"}</span>
             <div>
-              <p className="text-[20px]">Fotografe o produto</p>
-              <p className="mt-1 text-sm text-muted">Frente, verso ou lista de ingredientes</p>
+              <p className="text-[20px]">{target ? "Fotografe o verso" : "Fotografe o produto"}</p>
+              <p className="mt-1 text-sm text-muted">
+                {target ? `Lista de ingredientes de ${target.productName}` : "Frente, verso ou lista de ingredientes"}
+              </p>
             </div>
             <span className="inline-block rounded-full bg-accent px-8 py-3 text-sm text-ink">Escolher foto</span>
           </div>
         </label>
-        <div className="mt-5 flex justify-center">
+        <div className="mt-5 flex justify-center gap-4">
           <ButtonLink href="/colar" variant="ghost">Colar ingredientes manualmente</ButtonLink>
+          {target && <Button variant="ghost" onClick={reset}>Cancelar</Button>}
         </div>
       </div>
     );
@@ -278,15 +375,45 @@ function PhotoMode() {
   }
 
   if (phase.kind === "analyzing") {
+    const progress = Math.round(((phase.stepIdx + 1) / STEPS.length) * 100);
     return (
-      <div className="mt-6 flex flex-col items-center gap-5 py-16 text-center">
-        <div className="h-7 w-7 animate-spin rounded-full border-2 border-powder border-t-ink" />
-        <p className="text-sm text-muted">{phase.step}</p>
+      <div className="mt-6">
+        {/* Miniatura da foto */}
+        <div className="border border-ink">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={phase.previewUrl} alt="Foto enviada" className="max-h-[220px] w-full bg-powder object-contain opacity-60" />
+        </div>
+
+        {/* Barra de progresso */}
+        <div className="mt-4 h-px w-full bg-powder">
+          <div
+            className="h-px bg-ink transition-all duration-700"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+        {/* Passos */}
+        <ul className="mt-5 space-y-3">
+          {STEPS.map((label, i) => {
+            const done = i < phase.stepIdx;
+            const active = i === phase.stepIdx;
+            return (
+              <li key={i} className={`flex items-center gap-3 text-sm transition-opacity duration-300 ${active ? "opacity-100" : done ? "opacity-40" : "opacity-20"}`}>
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center border border-ink text-[10px]">
+                  {done ? "✓" : active ? <span className="h-2 w-2 animate-pulse rounded-full bg-ink" /> : ""}
+                </span>
+                <span className={active ? "font-medium" : ""}>{label}</span>
+              </li>
+            );
+          })}
+        </ul>
+
+        <p className="mt-5 text-xs text-muted">Isso pode levar alguns segundos…</p>
       </div>
     );
   }
 
-  return <ResultView result={phase.result} onReset={reset} />;
+  return <ResultView result={phase.result} onReset={reset} onScanBack={scanBack} />;
 }
 
 // ─── video mode ────────────────────────────────────────────────────────────
@@ -305,8 +432,10 @@ function VideoMode() {
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const busyRef = useRef(false);
+  const targetRef = useRef<Target | null>(null);
 
   const [phase, setPhase] = useState<VideoPhase>({ kind: "idle" });
+  const [target, setTarget] = useState<Target | null>(null);
 
   const stopCamera = useCallback(() => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
@@ -320,10 +449,12 @@ function VideoMode() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas || video.readyState < 2) return null;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext("2d")?.drawImage(video, 0, 0);
-    return canvas.toDataURL("image/jpeg", 0.82).split(",")[1] ?? null;
+    // Reduz para 640px de largura máxima — suficiente para OCR e 4× menor em bytes
+    const scale = Math.min(1, 640 / video.videoWidth);
+    canvas.width = Math.round(video.videoWidth * scale);
+    canvas.height = Math.round(video.videoHeight * scale);
+    canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.75).split(",")[1] ?? null;
   }, []);
 
   const runAnalysis = useCallback(async () => {
@@ -335,7 +466,8 @@ function VideoMode() {
       const frame = captureFrame();
       if (!frame) { busyRef.current = false; return; }
 
-      const data = await postImage(frame, "image/jpeg");
+      const current = targetRef.current;
+      const data = await postImage(frame, "image/jpeg", current?.productId);
 
       if (data.status === "analyzed" && data.analysisId) {
         stopCamera();
@@ -343,7 +475,13 @@ function VideoMode() {
         return;
       }
 
-      const result = parseApiResult(data);
+      const result = parseApiResult(data, current);
+
+      // Lendo o verso: seguimos tentando até a lista aparecer no enquadramento
+      if (result?.kind === "ingredients_not_visible") {
+        setPhase((p) => p.kind === "live" ? { ...p, analyzing: false, lastResult: "ainda não vejo a lista — aproxime do texto" } : p);
+        return;
+      }
 
       // Para needs_confirmation e no_ingredients mostramos tela de confirmação
       if (result && (result.kind === "needs_confirmation" || result.kind === "no_ingredients")) {
@@ -352,8 +490,15 @@ function VideoMode() {
         return;
       }
 
-      // Para erros menores (not_found, insufficient_image) continuamos tentando e mostramos na barra
-      const label = result?.kind === "not_found" ? (result.extractedName ? `"${result.extractedName}" não encontrado` : "sem correspondência")
+      // Produto identificado mas não no catálogo → para câmera e orienta o próximo passo
+      if (result?.kind === "not_found" && result.extractedName) {
+        stopCamera();
+        setPhase({ kind: "result", result });
+        return;
+      }
+
+      // Para erros menores continuamos tentando e mostramos na barra
+      const label = result?.kind === "not_found" ? "sem correspondência — tente de outro ângulo"
         : result?.kind === "insufficient_image" ? "foto pouco nítida"
         : result?.kind === "error" ? result.message
         : null;
@@ -388,40 +533,91 @@ function VideoMode() {
   const reset = useCallback(() => {
     stopCamera();
     busyRef.current = false;
+    targetRef.current = null;
+    setTarget(null);
     setPhase({ kind: "idle" });
   }, [stopCamera]);
 
+  const scanBack = useCallback((t: Target) => {
+    targetRef.current = t;
+    setTarget(t);
+    void startCamera();
+  }, [startCamera]);
+
   const isLive = phase.kind === "live";
+  const livePhase = isLive ? (phase as { kind: "live"; analyzing: boolean; lastResult: string | null }) : null;
 
   return (
     <div className="mt-6">
+      <style>{`
+        @keyframes scanLine {
+          0%   { top: 0%; opacity: 1; }
+          90%  { top: 100%; opacity: 1; }
+          100% { top: 100%; opacity: 0; }
+        }
+      `}</style>
+
       {/* Vídeo sempre no DOM quando câmera ativa para manter o stream */}
       <div className={isLive ? "block" : "hidden"}>
-        <div className="relative border border-ink bg-black">
+        <div className="relative border border-ink bg-black overflow-hidden">
           <video ref={videoRef} autoPlay playsInline muted className="w-full" style={{ maxHeight: "60vh", objectFit: "cover" }} />
-          {isLive && (
-            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between gap-4 bg-ink/70 px-5 py-3 text-white">
-              <p className="text-xs">
-                {(phase as { analyzing: boolean; lastResult: string | null }).analyzing
-                  ? "Analisando..."
-                  : (phase as { analyzing: boolean; lastResult: string | null }).lastResult
-                  ? `Última leitura: ${(phase as { analyzing: boolean; lastResult: string | null }).lastResult}`
-                  : "Aponte para o produto..."}
+
+          {/* ── Overlay: analisando ── */}
+          {livePhase?.analyzing && (
+            <div className="absolute inset-0 pointer-events-none">
+              {/* Linha de scan */}
+              <div
+                className="absolute left-0 right-0 h-0.5 bg-accent"
+                style={{ animation: "scanLine 2s ease-in-out infinite" }}
+              />
+              {/* Banner superior */}
+              <div className="absolute top-0 left-0 right-0 bg-ink px-4 py-3">
+                <p className="text-sm text-white font-medium">
+                  {target ? "Procurando a lista de ingredientes…" : "Analisando frame…"}
+                </p>
+                <p className="mt-0.5 text-xs text-white/60">A IA está lendo a embalagem</p>
+              </div>
+            </div>
+          )}
+
+          {/* ── Overlay: viewfinder (câmera ativa, não analisando) ── */}
+          {livePhase && !livePhase.analyzing && (
+            <div className="absolute inset-0 pointer-events-none">
+              {/* Cantos do viewfinder */}
+              <span className="absolute top-4 left-4 h-8 w-8 border-t-2 border-l-2 border-white/70" />
+              <span className="absolute top-4 right-4 h-8 w-8 border-t-2 border-r-2 border-white/70" />
+              <span className="absolute bottom-12 left-4 h-8 w-8 border-b-2 border-l-2 border-white/70" />
+              <span className="absolute bottom-12 right-4 h-8 w-8 border-b-2 border-r-2 border-white/70" />
+            </div>
+          )}
+
+          {/* ── Status bar inferior ── */}
+          {livePhase && (
+            <div className="absolute bottom-0 left-0 right-0 bg-ink/80 px-4 py-2.5 flex items-center justify-between gap-3">
+              <p className="text-xs text-white leading-snug">
+                {livePhase.analyzing
+                  ? "Lendo com IA — aguarde…"
+                  : livePhase.lastResult
+                  ? `↩ ${livePhase.lastResult}`
+                  : target
+                  ? "Vire a embalagem e mostre a lista de ingredientes"
+                  : "Aponte para a embalagem do produto"}
               </p>
-              <div className={`h-2 w-2 shrink-0 rounded-full ${(phase as { analyzing: boolean }).analyzing ? "animate-pulse bg-powder" : "bg-green-400"}`} />
+              <span className={`h-2 w-2 shrink-0 rounded-full ${livePhase.analyzing ? "animate-ping bg-accent" : "bg-green-400"}`} />
             </div>
           )}
         </div>
-        <div className="mt-5 flex flex-wrap gap-4">
-          <Button
-            onClick={runAnalysis}
-            disabled={(phase as { analyzing?: boolean }).analyzing ?? false}
-          >
-            {(phase as { analyzing?: boolean }).analyzing ? "Analisando..." : "Analisar agora"}
+
+        {/* Botões */}
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Button onClick={runAnalysis} disabled={livePhase?.analyzing ?? false}>
+            {livePhase?.analyzing ? "Analisando…" : "Analisar agora"}
           </Button>
           <Button variant="secondary" onClick={reset}>Parar câmera</Button>
         </div>
-        <p className="mt-3 text-xs text-muted">Analisa automaticamente a cada {VIDEO_INTERVAL_MS / 1000} segundos.</p>
+        <p className="mt-3 text-xs text-muted">
+          Analisa automaticamente a cada {VIDEO_INTERVAL_MS / 1000}s.
+        </p>
       </div>
 
       <canvas ref={canvasRef} className="hidden" aria-hidden />
@@ -460,7 +656,7 @@ function VideoMode() {
         </div>
       )}
 
-      {phase.kind === "result" && <ResultView result={phase.result} onReset={reset} />}
+      {phase.kind === "result" && <ResultView result={phase.result} onReset={reset} onScanBack={scanBack} />}
     </div>
   );
 }
